@@ -1,7 +1,6 @@
 require './bin/client/Button'
 require './bin/client/TextField'
 require './bin/client/Collision.rb'
-require '/bin/client/game/Game.rb'
 
 class Frame < Collision
   WIDTH, HEIGHT, PADDING = 1200, 700, 20
@@ -19,7 +18,10 @@ class Frame < Collision
       Button.new(950, 50, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Join a Server", @main),
       Button.new(950, 150, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Create a Server", @main),
       Button.new(950, 250, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Welcome", @main)
-    ]  
+    ]
+    
+    @button_join = Button.new(350, 550,["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Login", @main)
+    @button_join_as_guest = Button.new(570, 550,["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Login As Guest", @main)  
     
     #textinput
     @textinput_ip = Gosu::TextInput.new
@@ -43,7 +45,7 @@ class Frame < Collision
     
     To play this Game you have to press <b>create a server</b> first.
     Then you can invite your friends to <b>join the server</b>.
-    The default port is: <b>1234</b>
+    The default port is: <b>4713</b>
     If you want to be listed in the leaderboard you have to <b>sign up/in</b> with a username and a password.
     
     "
@@ -52,6 +54,9 @@ class Frame < Collision
     
   end
   
+  ########################################
+  #               DRAWING                #
+  ########################################
   def draw
     
     Gosu.draw_rect(0, 0, @main.width, @main.height, Gosu::Color.argb(0xff_ffffff))
@@ -60,7 +65,9 @@ class Frame < Collision
       button.draw()
     end
     
-    
+    ########################################
+    #            DRAWING TAB'S             #
+    ########################################
     case @active_tab
       #draws welcome screen
       when 0 then
@@ -70,7 +77,11 @@ class Frame < Collision
         for textfield in @textfield_list
           textfield.draw
         end
-        when 3 then
+        
+        @button_join.draw
+        @button_join_as_guest.draw
+        
+      when 3 then
           
           
           
@@ -103,6 +114,7 @@ class Frame < Collision
     end
     @main.caption = "(#{Gosu.fps} FPS)"
     
+    # UPDATING BUTTONS
     if(@button_list[0].update()) 
       @active_tab = 1
     end
@@ -113,6 +125,14 @@ class Frame < Collision
     
     if(@button_list[2].update()) 
       @active_tab = 0
+    end
+    
+    if(@button_join.update())
+      
+    end
+    
+    if(@button_join_as_guest.update())
+      
     end
     
   end
