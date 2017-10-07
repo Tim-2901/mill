@@ -13,7 +13,6 @@ class Button
   
   @hover = false
   @clicked = false
-  
   def initialize xpos, ypos, img, lable, main
     @xpos = xpos
     @ypos = ypos

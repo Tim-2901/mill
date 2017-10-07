@@ -1,15 +1,16 @@
 require "sqlite3"
 require "socket"
+require "./bin/server/GameHandler.rb"
 
 @db = SQLite3::Database.new("player.sqlite")
-@packets
+@gamehandler = GameHandler.new()
 
-server = TCPServer.new(4713)
+server = TCPServer.new("localhost",4713)
 
 # set the encoding of the connection to UTF-8
   server.set_encoding(Encoding::UTF_8)
   
-def recieveMessage(msg)
+def recieveMessage(msg, connection)
   
   action = msg[0]
   
@@ -50,17 +51,18 @@ def signUp(username,pw)
  
   puts "Sign Up successful"
   
-end  
+end
 
   loop do
-   
-    Thread.start(server.accept) do |client|
-    print("[Server] new client connection: " + client)
+    print("running")
+    Thread.start(server.accept) do |connection|
+    print("[Server] new client connection: " + connection)
   
     connection.set_encoding(Encoding::UTF_8) 
   
     msg = connection.gets.chop.force_encoding(Encoding::UTF_8)
     msg_array = msg.split(';')
-    recieveMessage(msg_array)
+    recieveMessage(msg_array, connection)
   end
+  
 end

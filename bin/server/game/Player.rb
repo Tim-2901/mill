@@ -2,12 +2,14 @@ class Player
   
   @name
   @connection
-  @winrate
+  @wins
+  @loses
   
-  def initialize name, connection, winrate
+  def initialize name, connection, wins, loses
    @name = name
    @connection = connection
-   @winrate = winrate
+   @wins = wins
+   @loses = loses
   end
   
   def getName
@@ -18,8 +20,12 @@ class Player
     return @connection
   end
   
-  def getWinrate
-    return @winrate
+  def getWins
+    return @wins
+  end
+  
+  def getLoses
+    return @loses
   end
   
 end
