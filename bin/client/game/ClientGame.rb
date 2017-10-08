@@ -1,3 +1,4 @@
+$LOAD_PATH << 'C:/Users/konop/Documents/mill/'
 require 'bin/client/game/Console'
 
 class ClientGame
@@ -12,10 +13,10 @@ class ClientGame
     @p2_remaining_playstones = 9
     
     #images
-    @img_map = Gosu::Image.new("assets/game/map.png")
-    @img_background = Gosu::Image.new("assets/game/background_game.png")
-    @img_playstone_white = Gosu::Image.new("assets/game/playstone_white.png")
-    @img_playstone_black = Gosu::Image.new("assets/game/playstone_black.png")
+    @img_map = Gosu::Image.new("C:/Users/konop/Documents/mill/assets/game/map.png")
+    @img_background = Gosu::Image.new("C:/Users/konop/Documents/mill/assets/game/background_game.png")
+    @img_playstone_white = Gosu::Image.new("C:/Users/konop/Documents/mill/assets/game/playstone_white.png")
+    @img_playstone_black = Gosu::Image.new("C:/Users/konop/Documents/mill/assets/game/playstone_black.png")
     
     @console = Console.new(300, 642, 600, 68)
         
