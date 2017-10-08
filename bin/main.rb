@@ -1,38 +1,34 @@
 require 'gosu'
-$LOAD_PATH << 'C:/Users/konop/Documents/mill/'
 require 'bin/client/Button'
 require 'bin/client/TextField'
 require 'bin/client/Collision'
 require 'bin/client/game/ClientGame'
-require 'bin/client/game/connect'
+require 'bin/server/game/Connection'
 
 class Window < Gosu::Window
   WIDTH, HEIGHT, PADDING = 1200, 700, 20
-  @active_tab
-  
+    
   def initialize width, height, fullscreen
     super(width, height, fullscreen)
 
     #Texturen
     @main = self
-    @cursor = Gosu::Image.new("C:/Users/konop/Documents/mill/assets/game/curser_normal.png", false)
-
-
+    @cursor = Gosu::Image.new("assets/game/curser_normal.png", false)
 
     @string = ""
     @active_tab = 0
     @ingame = false
     @game
     @active_textfield = nil
+    ### BUTTONS ###
     # 0 = button_join; 1 = button_create_server; 2 = sing up/in
     @button_list = [
-      Button.new(950, 50, ["C:/Users/konop/Documents/mill/assets/game/button_unpressed.png", "C:/Users/konop/Documents/mill/assets/game/button_hover.png"], "Join a Server", self),
-      Button.new(950, 150, ["C:/Users/konop/Documents/mill/assets/game/button_unpressed.png", "C:/Users/konop/Documents/mill/assets/game/button_hover.png"], "Create a Server", self),
-      Button.new(950, 250, ["C:/Users/konop/Documents/mill/assets/game/button_unpressed.png", "C:/Users/konop/Documents/mill/assets/game/button_hover.png"], "Welcome", self)
+      Button.new(950, 50, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Join a Server", self),
+      Button.new(950, 150, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Create a Server", self),
+      Button.new(950, 250, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Welcome", self)
     ]
-    @button_login = Button.new(100, 500, ["C:/Users/konop/Documents/mill/assets/game/button_unpressed.png", "C:/Users/konop/Documents/mill/assets/game/button_hover.png"], "Login", self)
-
-
+    @button_login = Button.new(100, 500, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Login", self)
+    
     @textfield_list = [
      TextField.new(100, 200, 250, 40, "IP:Port", self ,true),
      TextField.new(100, 300, 250, 40, "Username", self, true),
@@ -56,20 +52,16 @@ class Window < Gosu::Window
   end
   
   def draw
-
+  
     if(!@ingame)
       Gosu.draw_rect(0, 0, self.width, self.height, Gosu::Color.argb(0xff_ffffff))
-
       for button in @button_list
         button.draw()
       end
-
-
       case @active_tab
         when 0 then
-          @text.draw(PADDING, PADDING, 0, 1, 1, Gosu::Color.argb(0xff_000000))
-        when 1 then
-
+        @text.draw(PADDING, PADDING, 0, 1, 1, Gosu::Color.argb(0xff_000000))
+      when 1 then
         @button_login.draw
 
         for textfield in @textfield_list
@@ -79,17 +71,11 @@ class Window < Gosu::Window
     else
       @game.draw()
     end
-
     @cursor.draw(self.mouse_x, self.mouse_y, 0)
-  end
-  
-  
-  def button_up(id)
 
-  end
-
+ end
+  
   def button_down(id)
-
     case id
       #triggers when left mousebutton is pressed
       when Gosu::MS_LEFT
@@ -126,56 +112,59 @@ class Window < Gosu::Window
         #delete a letter in the textfield
         when Gosu::KB_BACKSPACE
           @active_textfield.delete_char()
-        else
-          if(@active_textfield != nil)
-            char = Gosu::button_id_to_char(id)
-            @active_textfield.write(char)
-          end
+        else  
+      if(@active_textfield != nil)
+         char = Gosu::button_id_to_char(id)
+         @active_textfield.write(char)
       end
-
+        
+    end
+    
   end
-
-
-
+    
 
   def update
 
     self.caption = "(#{Gosu.fps} FPS)"
-
-    if(!@ingame)
-
+   
+    if(!@ingame) 
+      
       ###updating buttons###
       if(@button_list[0].update())
         @active_tab = 1
       end
-
+  
       if(@button_list[1].update())
         @active_tab = 2
       end
-
+  
       if(@button_list[2].update())
         @active_tab = 0
         puts "hello"
       end
-
+      
       if(@button_login.update())
-        connection = Connection.new(@textfield_list[0].fieldtext, 4713)
-        answer = connection.send("signIn" + ";" + @textfield_list[1].fieldtext + ";" + @textfield_list[2].fieldtext)
-        if(answer == "Login successful")
-          @ingame = true
-          @game = ClientGame.new("Spieler1", "Spieler2")
-          #TODO queue muss hier eingefügt werden
-        end
-      end
-
-
+        puts "test"
+         connection = Connection.new(@textfield_list[0].fieldtext, 4713)
+         puts "test0"
+         puts @textfield_list[1].fieldtext + ";" + @textfield_list[2].fieldtext
+         answer = connection.sending("signIn" + ";" + @textfield_list[1].fieldtext + ";" + @textfield_list[2].fieldtext)
+         puts "test1"
+         if(answer == "Login successful")
+           puts "test2"
+           @ingame = true
+           @game = ClientGame.new("Spieler1", "Spieler2", self)
+           #TODO queue muss hier eingefügt werden
+         end
+       end
+        
     else
       @game.update
     end
-
-  end
+    
+ end
+  
 end
-
 
   
   #start

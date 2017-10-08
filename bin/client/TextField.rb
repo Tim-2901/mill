@@ -1,4 +1,3 @@
-$LOAD_PATH << 'C:/Users/konop/Documents/mill/'
 require 'bin/client/Collision'
 require 'gosu'
 # File: TextField.rb

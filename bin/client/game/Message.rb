@@ -2,7 +2,8 @@ class Message
   
   def initialize msg, color, font_size
     @color = color
-    @img = Gosu::Image.from_text msg, font_size
+    newmsg = Time.new.strftime("<b>[%H:%M] " + msg)
+    @img = Gosu::Image.from_text newmsg, font_size
   end
   
   def draw xpos, ypos
