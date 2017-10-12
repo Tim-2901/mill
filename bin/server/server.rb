@@ -18,11 +18,12 @@ class Server
     @db = SQLite3::Database.new("player.sqlite")
     @turn = nil
     @server = TCPServer.new(ip,port)
+    @queue = []
     puts @server.addr()
     puts @server
     # set the encoding of the connection to UTF-8
     @server.set_encoding(Encoding::UTF_8)
-    mainloop()
+    mainloop
   end
 
 
@@ -35,27 +36,33 @@ class Server
   # Return:
   # nothing
   def recieveMessage(msg,connection)
-
+    rtrn = false
     action = msg[0]
     puts msg
     print "Action: " + action +"\n"
-    # possible Actions are: signIn; signUp; moved; quequeUp;
+    # possible Actions are: signIn; signUp; moved; quequeUp; place;
     case action
       when "signIn"
-        then signIn(msg[1],msg[2], connection)
+        then rtrn = signIn(msg[1],msg[2])
 
       when "signUp"
-        then signUp(msg[1],msg[2], connection)
+        then rtrn = signUp(msg[1],msg[2])
 
       when "moved"
-        then moved(msg[1],msg[2], connection)
+        then rtrn = moved(msg[1],msg[2], connection)
 
       when "queueUp"
-        then queue(msg[1], connection)
+        then rtrn = queue(msg[1], connection)
 
+      when "place"
+        then rtrn =place(msg[1], connection)
 
       else
         connection.puts(action.to_s + " is no valid Action!")
+    end
+    if(msg != false)
+      connection.puts(rtrn)
+      puts rtrn
     end
   end
 
@@ -69,20 +76,25 @@ class Server
   #
   # Return:
   #
-  def signIn(username,pw,connection)
-    print "Username: "+ username + "\n" + "Password: " + pw + "\n"
+  def signIn(username,pw)
+    begin
+      print "Username: "+ username + "\n" + "Password: " + pw + "\n"
 
-    query = "SELECT pw FROM player WHERE name = :username"
+      query = "SELECT pw FROM player WHERE name = :username"
 
-    db_pw = @db.execute(query,
-                :username => username)
-    if (db_pw[0][0] == pw)
-      msg = "Login successful"
-    else
-      msg = "Wrong password"
+      db_pw = @db.execute(query,
+                  :username => username)
+      if (db_pw[0][0] == pw)
+        msg = "Login successful"
+      else
+        msg = "Wrong password"
+      end
+    rescue Exception => excep
+      msg = handleException(excep, "player")
+
     end
-    connection.puts(msg)
-    puts(msg)
+
+    return msg
 
 
   end
@@ -97,7 +109,7 @@ class Server
   #
   # Return:
   #
-  def signUp(username,pw,connection)
+  def signUp(username,pw)
     begin
     print "Username: "+ username + "\n" + "Password: " + pw + "\n"
 
@@ -113,17 +125,11 @@ class Server
       # if the username is already taken ruby would throw a exeption and terminate the game.
       # to avoid this the execption is catched and a hint is shown in the login screen.
     rescue Exception => excep
+      msg = handleException(excep, "player")
 
-        msg = case excep.to_s
-          when "UNIQUE constraint failed: player.name"
-            "The username is already taken."
-          else
-            "An unkown error has occured."
-        end
-
+    return msg
     end
-    connection.puts(msg)
-    puts(msg)
+
   end
 
   # Description:
@@ -138,11 +144,20 @@ class Server
   #
   def moved(startpos, endpos, connection)
 
-    isAllowed(startpos, endpos)
+    no = noOfStones()
+
+    # checks if the move is valid
+    allowed = isAllowed(startpos, endpos, no)
+    # writes it to the array
+    if(allowed == "invalid") then return "invalid" end
     confirmMove(startpos, endpos, connection)
-    checkIfMill(endpos)
-    checkIfStuck()
+    mill = checkIfMill(endpos)
     changeTurn()
+    if(mill == "mill")then handleMill(connection) end
+    won = checkIfWon()
+    if(won !="notwon")then return won end
+    return allowed
+
   end
 
   # Description:
@@ -155,14 +170,19 @@ class Server
   # Return:
   # true if it is allowed
   #
-  def isAllowed(startpos, endpos)
+  def isAllowed(startpos, endpos, no)
+
+
     if(isOccupied!(endpos))
-      return false
+      return "invalid"
     end
-    if(!isConnected(startpos, endpos))
-      return false
+    if(no >= 3)
+      if(!isConnected(startpos, endpos))
+      return "invalid"
+      end
     end
-    return true
+
+    return "ok"
 
   end
 
@@ -265,10 +285,42 @@ class Server
     end
     for i in 0..array.length - 1
       if(field[array[i][0] % 24] == @turn && field[array[i][1] % 24] == @turn)
-        return true
+        return "mill"
       end
     end
+    return "nomill"
+  end
+
+  # Description:
+  #
+  #
+  # Parameter(s):
+  #
+  #
+  # Return:
+  #
+  def checkIfWon()
+    if(noOfStones < 3)
+      return "won"
+    end
+
+    if(isStuck)
+      return "stuck"
+    end
+    return "notwon"
+  end
+
+  def isStuck
+    occupied = []
+    for i in 0..@field.length - 1
+      if (@field[i] == @turn)then occupied << @turn end
+    end
+    positions = []
+    positions << occupied.each{|x| getConnected(x)}
+    positions.uniq
+    positions.each{|x| if(isOccupied!(x))then return true end}
     return false
+
   end
 
   # Description:
@@ -287,6 +339,8 @@ class Server
     end
   end
 
+
+
   # Description:
   #
   #
@@ -295,11 +349,66 @@ class Server
   #
   # Return:
   #
-  def queue(player,connection)
+  def noOfStones()
+    no = 0
+    @field.each{
+        |i|
+        if i == @turn
+          no += 1
+        end
 
+    }
+  return no
   end
 
-  def mainloop()
+  def handleMill(connection)
+    connection.puts("mill")
+    pos = connection.gets.chop.force_encoding(Encoding::UTF_8)
+    if(@field[pos] = @turn)
+      return true
+    end
+    connection.puts("invalid")
+    handleMill(connection)
+  end
+
+  # Description:
+  #
+  #
+  # Parameter(s):
+  #
+  #
+  # Return:
+  #
+  def queue(player, connection)
+    @queue << [player, connection]
+    if(@queue.length > 1)
+      @queue.each{ |x| x[1].puts("start")}
+    end
+    return false
+  end
+
+  def place(pos, connection)
+    if(@field[pos] != nil)
+      return "invalid"
+    end
+
+    if(checkIfMill(pos))
+      handle(connection)
+    end
+  return  "ok"
+  end
+
+  def handleException(excep, arg)
+    msg = case excep
+            when "no such table:"
+              "Their is no table #{arg} in the Database"
+            else
+              "Error: " + excep.inspect.to_s + " has occured"
+          end
+    return msg
+  end
+
+  def mainloop
     loop do
 
       connection = @server.accept
