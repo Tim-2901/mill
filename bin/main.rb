@@ -6,6 +6,7 @@ require 'bin/client/Collision'
 require 'bin/client/game/ClientGame'
 require 'bin/client/game/Connection'
 require 'bin/server/server'
+require 'bin/server/console'
 
 class Window < Gosu::Window
   WIDTH, HEIGHT, PADDING = 1200, 700, 20
@@ -18,8 +19,8 @@ class Window < Gosu::Window
     @main = self
     @cursor = Gosu::Image.new("C:/Users/konop/Documents/mill/assets/game/curser_normal.png", false)
 
-
-
+    @server_thread = nil
+    @server = nil
     @string = ""
     @active_tab = 0
     @ingame = false
@@ -32,16 +33,18 @@ class Window < Gosu::Window
         Button.new(950, 250, ["C:/Users/konop/Documents/mill/assets/game/button_unpressed.png", "C:/Users/konop/Documents/mill/assets/game/button_hover.png"], "Welcome", self)
     ]
     @button_login = Button.new(100, 500, ["C:/Users/konop/Documents/mill/assets/game/button_unpressed.png", "C:/Users/konop/Documents/mill/assets/game/button_hover.png"], "Login", self)
-    @button_create = Button.new(100, 500, ["C:/Users/konop/Documents/mill/assets/game/button_unpressed.png", "C:/Users/konop/Documents/mill/assets/game/button_hover.png"], "Create Server", self)
+    @button_create = Button.new(50, 600, ["C:/Users/konop/Documents/mill/assets/game/button_unpressed.png", "C:/Users/konop/Documents/mill/assets/game/button_hover.png"], "Start/Stop Server", self)
 
     @textfield_list = [
         TextField.new(100, 200, 250, 40, "IP:Port", self ,true),
         TextField.new(100, 300, 250, 40, "Username", self, true),
-        TextField.new(100, 400, 250, 40, "Password", self, false),
-        TextField.new(100, 200, 250, 40, "IP", self, true),
-        TextField.new(100, 300, 250, 40, "Port", self, true),
-        TextField.new(100, 400, 250, 40, "Name", self, true)
+        TextField.new(100, 400, 250, 40, "Password", self, false)
+        #TextField.new(100, 200, 250, 40, "IP", self, true),
+        #TextField.new(100, 300, 250, 40, "Port", self, true),
+        #TextField.new(100, 400, 250, 40, "Name", self, true)
     ]
+
+    @server_console = Console.new(50, 50, 550, 850, Gosu::Color.argb(0xff_000000), Gosu::Color.argb(0xff_ffffff), self)
 
 
     text =
@@ -82,9 +85,10 @@ class Window < Gosu::Window
         when 2 then
 
           @button_create.draw
-          for textfield in @textfield_list[3..5]
-            textfield.draw
-          end
+          #for textfield in @textfield_list[3..5]
+          #  textfield.draw
+          #end
+          @server_console.draw
       end
     else
       @game.draw()
@@ -186,11 +190,15 @@ class Window < Gosu::Window
           #TODO queue muss hier eingefügt werden
         end
       end
-
       if(@button_create.update())
-        puts "a"
-        server = Thread.new{Server.new("localhost", 4713)}
-        puts "b"
+        if(@server_thread == nil)
+          puts @server_console
+          @server_thread = Thread.new{Server.new("localhost", 4713, @server_console, self)}
+        else
+          @server_console.write("Server has been stopped")
+          Thread.kill(@server_thread)
+          @server_thread = nil
+        end
       end
 
     else
@@ -198,6 +206,10 @@ class Window < Gosu::Window
     end
 
   end
+  def consoleUpdate(msg)
+    @console.write(msg)
+  end
+
 end
 
 

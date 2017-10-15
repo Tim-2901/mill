@@ -51,7 +51,7 @@ class ClientGame
     
     @console = Console.new(300, 642, 600, 68)
     
-    endTurn #
+    endTurn
   end
   
   def draw

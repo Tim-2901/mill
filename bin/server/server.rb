@@ -10,17 +10,21 @@ require "socket"
 #
 class Server
 
-  def initialize(ip,port)
+  def initialize(ip, port, console, main)
+    @main = main
+    puts console
+    @console = console
+    @console.clear
+
     if(ip == "localhost")
       ip = Socket.ip_address_list[3].ip_address
     end
+    @console.textlist("Server is running under #{ip}:#{port}")
     @field = [nil] * 24
     @db = SQLite3::Database.new("player.sqlite")
     @turn = nil
     @server = TCPServer.new(ip,port)
     @queue = []
-    puts @server.addr()
-    puts @server
     # set the encoding of the connection to UTF-8
     @server.set_encoding(Encoding::UTF_8)
     mainloop
@@ -39,7 +43,7 @@ class Server
     rtrn = false
     action = msg[0]
     puts msg
-    print "Action: " + action +"\n"
+    @console.textlist("Action: " + action)
     # possible Actions are: signIn; signUp; moved; quequeUp; place;
     case action
       when "signIn"
@@ -55,7 +59,11 @@ class Server
         then rtrn = queue(msg[1], connection)
 
       when "place"
-        then rtrn =place(msg[1], connection)
+        then rtrn = place(msg[1], connection)
+
+      when "leaderboard"
+        then rtrn = leaderboard(msg[1])
+
 
       else
         connection.puts(action.to_s + " is no valid Action!")
@@ -63,6 +71,7 @@ class Server
     if(msg != false)
       connection.puts(rtrn)
       puts rtrn
+      @console.textlist(rtrn)
     end
   end
 
@@ -382,9 +391,10 @@ class Server
   def queue(player, connection)
     @queue << [player, connection]
     if(@queue.length > 1)
-      @queue.each{ |x| x[1].puts("start")}
+      @queue.each_with_index{ |x| x[1].puts("start")}
     end
     return false
+
   end
 
   def place(pos, connection)
@@ -408,11 +418,29 @@ class Server
     return msg
   end
 
+  def consoleOutput(msg)
+
+    @main.consoleUpdate(msg)
+  end
+
+  def leaderboard(player)
+    query = "SELECT name,wins,loses FROM player WHERE name != :name"
+
+    db_kda = @db.execute(query,
+                         :name => "Ssdadwadwa")
+    puts db_kda.to_s
+    for i in 0..db_kda.length - 1
+       db_kda[i] << (db_kda[i][1] /db_kda[i][2])
+    end
+    puts db_kda.to_s
+    return db_kda.to_s
+  end
+
   def mainloop
     loop do
 
       connection = @server.accept
-      print("new connection accepted\n")
+      @console.textlist("new connection accepted")
 
       connection.set_encoding(Encoding::UTF_8)
 
