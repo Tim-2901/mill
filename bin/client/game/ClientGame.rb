@@ -1,3 +1,4 @@
+$LOAD_PATH << 'C:/Users/konop/Documents/mill/'
 require 'bin/client/game/Console'
 require 'bin/client/game/Field'
 require 'bin/server/Server'
@@ -6,12 +7,12 @@ require 'bin/server/Server'
 class ClientGame
   
   def initialize p1, p2, main, ip, port
-    
+    puts "clientgame started"
     @main = main
     @mouse_clicked = false
     
     @selected_stone = -1
-    
+    @connection = TCPSocket.new(ip, port)
     ###########################################################
     # stone Fields (use  factor 0.375) relative to the map    #
     ###########################################################
@@ -22,7 +23,7 @@ class ClientGame
     # 16. = 608, 990 17. = 800, 990 18. = 992, 990 
     # 19. = 384, 1214 20. = 800, 1214 21. = 1216, 1214 
     # 22. = 165, 1435 23. = 800, 1435 24. = 1434, 1435                     
-    
+    puts "creating fields"
     @fields = [Field.new(800, 1435), Field.new(800, 1214), Field.new(800, 990),Field.new(165, 1435),Field.new(384, 1214),Field.new(608, 990), Field.new(165, 798), Field.new(383, 798), Field.new(607, 798), Field.new(165, 165),
     Field.new(384, 384), Field.new(608, 608),Field.new(800, 165),Field.new(800, 384),Field.new(800, 608),Field.new(1434, 165),Field.new(1216, 384),Field.new(992, 608),Field.new(992, 798), Field.new(1216, 798), Field.new(1436, 798),
     Field.new(992, 990),Field.new(1216, 1214),Field.new(1434, 1435)]
@@ -47,14 +48,17 @@ class ClientGame
     @ypos_map = 20
       
     #images
-    @img_map = Gosu::Image.new("assets/game/map.png")
-    @img_background = Gosu::Image.new("assets/game/background_game.png")
-    @img_playstone_white = Gosu::Image.new("assets/game/playstone_white.png")
-    @img_playstone_black = Gosu::Image.new("assets/game/playstone_black.png")
-    
+    puts "drawing map"
+    @img_map = Gosu::Image.new("C:/Users/konop/Documents/mill/assets/game/map.png")
+    @img_background = Gosu::Image.new("C:/Users/konop/Documents/mill/assets/game/background_game.png")
+    @img_playstone_white = Gosu::Image.new("C:/Users/konop/Documents/mill/assets/game/playstone_white.png")
+    @img_playstone_black = Gosu::Image.new("C:/Users/konop/Documents/mill/assets/game/playstone_black.png")
+
+    puts "drawing console"
     @console = Console.new(300, 642, 600, 68)
-    
-    endTurn #
+
+    puts "init finished"
+    endTurn()
   end
   
   # Description:
@@ -252,9 +256,9 @@ class ClientGame
   end
   
   def sendDataToServer string
-    connection = Connection.new
-    connection.puts(string)
-    msg = connection.gets.chop.force_encoding(Encoding::UTF_8)
+
+    @connection.puts(string)
+    msg = @connection.gets.chop.force_encoding(Encoding::UTF_8)
     
     case msg
     

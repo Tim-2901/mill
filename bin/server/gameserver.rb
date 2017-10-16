@@ -12,13 +12,17 @@ require "socket"
 class GameServer
 
   def initialize(connections,console)
+    puts"gameserver started"
     @console = console
     @players = [connections[0][0],connections[1][0]]
+    puts @players
     @field = [nil] * 24
     @turn = nil
     @queue = connections
     @connections = [connections[0][1],connections[1][1]]
-    startGame
+    puts @connections
+    puts "init"
+    startGame()
   end
 
 
@@ -69,13 +73,18 @@ class GameServer
   end
 
   def startGame
-    @connections[0].puts[@players[1]]
-    @connections[1].puts[@players[0]]
+    puts "startGame"
+    #puts ("first player" + @connetions[0].to_s + " ; " + @players[0].to_s)
+    #puts ("second player" + @connetions[1].to_s + " ; " + @players[1].to_s)
+    #@connections[0].puts[@players[1]]
+    #@connections[1].puts[@players[0]]
     x = rand(2)
+    puts x
     y = if(x == 1)then 0 else 1 end
     @turn = @players[x]
     @connections[x].puts("yourTurn")
     @connections[y].puts("enemyTurn")
+    puts "startGame finished"
     recieveMessage(x)
   end
 

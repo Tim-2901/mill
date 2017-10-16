@@ -408,8 +408,17 @@ class Server
   # false if there is only 1 player in the q
   def queue(player, connection)
     @queue << [player, connection]
+    puts @queue.to_s
     if(@queue.length > 1)
+      puts "first"
+      puts (@queue[0][1])
+      puts (@queue[1][0])
+      (@queue[0][1]).puts(@queue[1][0])
+      puts "second"
+      (@queue[1][1]).puts(@queue[0][0])
+      puts "finished"
       GameServer.new(@queue, @console)
+
     end
     puts "qq"
     return false

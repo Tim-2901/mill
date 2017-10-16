@@ -42,7 +42,6 @@ class Console
         @text = @text[(@text.index("\n") + 1)..-1]
       end
       @textimg = Gosu::Image.from_text(@text, @fontsize)
-      puts @textimg.height
   end
 
   def clear

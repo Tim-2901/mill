@@ -1,5 +1,16 @@
 class Button
   
+  @xpos
+  @ypos
+  @width
+  @height
+  @img_0
+  @img_1
+  @lable
+  @paddingx
+  @paddingy
+  @main
+  
   @hover = false
   @clicked = false
   
@@ -22,7 +33,7 @@ class Button
   #
   # Parameter(s):
   # -
-  # 
+  #
   # Return:
   # -
   def draw
@@ -65,7 +76,7 @@ class Button
     end
     
     return false
-    
+
   end
   
   # Description:
