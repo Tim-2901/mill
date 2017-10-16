@@ -1,6 +1,6 @@
 # mill
-Um ein spiel zu starten müsst ihr "gem install gosu" und "gem install sqlite" ausführen.;
-Dann müsst ihr die Datei mill/bin/main.rb ausführen.;
+Um ein spiel zu starten müsst ihr "gem install gosu" und "gem install sqlite" ausführen.
+Dann müsst ihr die Datei mill/bin/main.rb ausführen.
 Dort müsst ihr dann als erstes einen Server erstellen.
 Dann müsst ihr euch einen Client bzw. zum testen 2 Clients erstellen(Sign Up).
 Dann ihr auf Login drücken und habt dan wieder 3 Auswahlmöglichkeiten.
