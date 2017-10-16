@@ -43,13 +43,13 @@ class GameServer
       then rtrn = signUp(msg[1],msg[2])
 
       when "moved"
-        then rtrn = moved(msg[1],msg[2], connection)
+        then rtrn = moved(msg[1].to_i,msg[2].to_i, connection)
 
       when "queueUp"
       then rtrn = queue(msg[1], connection)
 
       when "place"
-        then rtrn = place(msg[1])
+        then rtrn = place(msg[1].to_i, connection)
 
       when "leaderboard"
       then rtrn = leaderboard(msg[1])
@@ -63,17 +63,28 @@ class GameServer
       puts rtrn
       @console.textlist(rtrn)
     end
-    if(rtrn != "won" && rtrn != "stuck")
+    if(rtrn != "won" && rtrn != "enemy_stucked")
       if(player == 0)then player = 1 else player = 0 end
+      @connections[player].puts(
+      "enemysmove;#{@move[0].to_s};#{@move[1].to_s};#{@move[2].to_s}"
+
+
+      )
       recieveMessage(player)
     else
+      connection.puts(rtrn)
+      if rtrn == "won"
+      @connections[player].puts("enemy_won")
+      else
+        @connections[player].puts("stucked")
+      end
+
 
     end
 
   end
 
   def startGame
-    puts "startGame"
     #puts ("first player" + @connetions[0].to_s + " ; " + @players[0].to_s)
     #puts ("second player" + @connetions[1].to_s + " ; " + @players[1].to_s)
     #@connections[0].puts[@players[1]]
@@ -99,7 +110,7 @@ class GameServer
   # Return:
   #
   def moved(startpos, endpos, connection)
-
+    @move = [startpos,endpos,nil]
     no = noOfStones()
 
     # checks if the move is valid
@@ -261,7 +272,7 @@ class GameServer
     end
 
     if(isStuck)
-      return "stuck"
+      return "enemy_stuck"
     end
     return "notwon"
   end
@@ -337,6 +348,8 @@ class GameServer
     connection.puts("mill")
     pos = connection.gets.chop.force_encoding(Encoding::UTF_8)
     if(@field[pos] = @turn)
+      @field[pos] = nil
+      @move[2] = pos
       return true
     end
     connection.puts("invalid")
@@ -356,10 +369,12 @@ class GameServer
     if(@field[pos] != nil)
       return "invalid"
     end
+    @move = [nil, pos, nil]
 
     if(checkIfMill(pos))
       handle(connection)
     end
+
     return  "ok"
   end
 
