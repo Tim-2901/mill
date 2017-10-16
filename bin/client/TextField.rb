@@ -1,4 +1,3 @@
-$LOAD_PATH << 'C:/Users/konop/Documents/mill/'
 require 'gosu'
 # File: TextField.rb
 # Author: Tim Konopka & Tom Hauschild

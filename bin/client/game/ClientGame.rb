@@ -1,4 +1,3 @@
-$LOAD_PATH << 'C:/Users/konop/Documents/mill/'
 require 'bin/client/game/Console'
 require 'bin/client/game/Field'
 require 'bin/server/Server'
@@ -28,13 +27,15 @@ class ClientGame
     Field.new(384, 384), Field.new(608, 608),Field.new(800, 165),Field.new(800, 384),Field.new(800, 608),Field.new(1434, 165),Field.new(1216, 384),Field.new(992, 608),Field.new(992, 798), Field.new(1216, 798), Field.new(1436, 798),
     Field.new(992, 990),Field.new(1216, 1214),Field.new(1434, 1435)]
 
-    @button_action = Button.new(950, 645, ["C:/Users/konop/Documents/mill/assets/game/button_unpressed.png", "C:/Users/konop/Documents/mill/assets/game/button_hover.png"], "Draw", main)
+    @button_action = Button.new(950, 645, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Draw", main)
     
     @player1 = p1; #client player
     @player2 = p2; #enemy player
+    @recieve_message = nil
     
-    @your_turn = false
+    @your_turn
     
+    @thread_active = false
     @remove_a_stone = false
     
     @p1_remaining_playstones = 9
@@ -50,18 +51,25 @@ class ClientGame
     @ypos_map = 20
       
     #images
-    puts "drawing map"
-    @img_map = Gosu::Image.new("C:/Users/konop/Documents/mill/assets/game/map.png")
+    @img_map = Gosu::Image.new("assets/game/map.png")
     puts @img_map
-    @img_background = Gosu::Image.new("C:/Users/konop/Documents/mill/assets/game/background_game.png")
-    puts @img_background
+    @img_background = Gosu::Image.new("assets/game/background_game.png")
 
-    @img_playstone_white = Gosu::Image.new("C:/Users/konop/Documents/mill/assets/game/playstone_white.png")
-    @img_playstone_black = Gosu::Image.new("C:/Users/konop/Documents/mill/assets/game/playstone_black.png")
+    @img_playstone_white = Gosu::Image.new("assets/game/playstone_white.png")
+    @img_playstone_black = Gosu::Image.new("assets/game/playstone_black.png")
 
-    puts "drawing console"
     @console = ConsoleGame.new(300, 642, 600, 68)
-
+    
+    @firstturn = @connection.gets.chop.force_encoding(Encoding::UTF_8)
+    if(@firstturn == "yourTurn")
+      @your_turn = true
+      @console.print("It's your turn!",0xff_12ff00)
+      genPossiblePositions()
+    else if(@firstturn == "enemyTurn")
+      @your_turn = false
+      @console.print("Its your enemy's turn!",0xff_ffcc00)
+    end end
+    
     puts "init finished"
   end
   
@@ -115,11 +123,8 @@ class ClientGame
   def update 
     #mouse clicked on a field
     if(!@game_over)
-      puts("1")
       if(@your_turn)
-        puts("2")
         if(@mouse_clicked)
-          puts("3")
           for i in 0.. @fields.length - 1
             if(@fields[i].update())
               clickField(i)
@@ -128,63 +133,72 @@ class ClientGame
           @mouse_clicked = false
         end
       else
-        puts("4")
-        msg = @connection.gets.chop.force_encoding(Encoding::UTF_8)
-        msg_array = msg.split(';')
-        recieveMessage(msg_array)
+        if(!@thread_active)
+          @thread_active = true
+          Thread.new{
+            msg = @connection.gets.chop.force_encoding(Encoding::UTF_8)
+            msg_array = msg.split(';')
+            @thread_active = false
+            @recive_message = msg_array
+          }
+        end
+        
+        if(@recive_message != nil)
+          recieveMessage(@recive_message)
+          @recive_message = nil
+        end
+        
       end
-
+      
       if(@button_action.update)
-        puts("5")
         if(!@draw)
-          puts("6")
           @connection.puts("draw")
           @console.print("You've send a request for a draw.",0xff_ff1200)
         else
-          puts("7")
           @connection.puts("draw")
         end
       end
 
     else
-      puts("8")
       if(@button_action.update)
-        puts("9")
         return true
       end
     end
-    puts("1")
     return false
   end
   
   def recieveMessage msg
     action = msg[0]
     case action
-      when "move"
-        then @selected_stone = msg[1]
-             moveStone(msg[2], "black")
+      when "enemysmove"
+        then 
+            if(msg[1] != nil)
+              @selected_stone = msg[1].to_i
+              moveStone(msg[2].to_i, "black")
+            else
+              @fields[msg[2].to_i].setStone("black")
+            end
+             if(msg[3] != nil)
+               @fields[msg[3].to_i].clear
+               @p2_taken_stone += 1
+             end
              endTurn
-      when "set"
-        then @fields[msg[1]].setStone("black")
-      when "remove"
-        then @fields[msg[1]].clear
-             @p2_taken_stones += 1
       when "enemy_won"
         then #TODO
-      when "enemy_stucked"
+      when "enemy_stuck"
         then
         @game_over = true
-        @console.print("Your enemy is stucked, you've won the game!",0xff_ff1200)
+        @console.print("Your enemy is stuck, you've won the game!",0xff_ff1200)
         @button_action.setLable("Exit")
       when "won"
         then
         @game_over = true
         @console.print("You've won the game!",0xff_ff1200)
         @button_action.setLable("Exit")
-      when "stucked"
+      when "stuck"
         then
         @game_over = true
-        @console.print("You're stucked, your enemy has won the game!",0xff_ff0000)
+        @console.print("You're stuck, your enemy has won the game!",0xff_ff0000)
         @button_action.setLable("Exit")
       when "draw"
         then
@@ -193,7 +207,7 @@ class ClientGame
         @button_action.setLable("Exit")
      when "request_draw"
        @draw = true
-       @console.print("You're enemy offerce you a draw, accept by clicking the \"draw\" button.",0xff_ff0000)
+       @console.print("You're enemy offers you a draw, accept by clicking the \"draw\" button.",0xff_ff0000)
     end
   end
   
@@ -284,18 +298,19 @@ class ClientGame
   def clickField i
     if(@fields[i].getColor == "white")
       if(@fields[i].isGhost)
-        if(@selected_stone >= 0)  
-          #if(sendDataToServer("moved;" + @selected_stone + ";" + i))
+        #if(@selected_stone >= 0)  
+        if(@p1_remaining_playstones <= 0)
+          if(sendDataToServer("moved;" + @selected_stone.to_s + ";" + i.to_s))
             moveStone(i,"white")
             endTurn
-          #end
+          end
         else
-          #if(sendDataToServer("place;" + i))
+          if(sendDataToServer("place;" + i.to_s))
             @fields[i].setStone("white")
             @console.print("You placed your stone.",0xff_ffffff)
             @p1_remaining_playstones -= 1
             endTurn
-          #end
+          end
         end
       else
         selectField(i)
@@ -309,12 +324,10 @@ class ClientGame
   end
   
   def sendDataToServer string
-
+    
     @connection.puts(string)
     msg = @connection.gets.chop.force_encoding(Encoding::UTF_8)
-    
     case msg
-    
       when "invalid"
         then
         @console.print("Invalid turn",0xff_ff0000)

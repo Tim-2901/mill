@@ -371,7 +371,7 @@ class GameServer
     end
     @move = [nil, pos, nil]
 
-    if(checkIfMill(pos))
+    if(checkIfMill(pos) == "mill")
       handle(connection)
     end
 
