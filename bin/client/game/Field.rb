@@ -15,12 +15,20 @@ class Field
     @color = ""
     
     #images
-    @img_playstone_white = Gosu::Image.new("C:/Users/konop/Documents/mill/assets/game/playstone_white.png")
-    @img_playstone_black = Gosu::Image.new("C:/Users/konop/Documents/mill/assets/game/playstone_black.png")
-    @img_playstone_selection = Gosu::Image.new("C:/Users/konop/Documents/mill/assets/game/playstone_selection.png")
+    @img_playstone_white = Gosu::Image.new("assets/game/playstone_white.png")
+    @img_playstone_black = Gosu::Image.new("assets/game/playstone_black.png")
+    @img_playstone_selection = Gosu::Image.new("assets/game/playstone_selection.png")
     
   end
   
+  # Description:
+  # draws this field/playstone
+  #
+  # Parameter(s):
+  # main
+  #
+  # Return:
+  # - 
   def draw main
     if(@visible)
       @hover = isHovered(main)
@@ -44,6 +52,16 @@ class Field
     end
   end
   
+  # Description:
+  # updates the field, sets @alpha to the normal value the creates the hover
+  # effect
+  #
+  # Parameter(s):
+  # -
+  # Return:
+  # boolean value
+  # true : field is hovered
+  # false : field isn't hovered
   def update
     if(@hover)
       @alpha = @normal_value
@@ -53,25 +71,60 @@ class Field
     return false
   end
   
+# Description:
+# getter of @color
+# Parameter(s):
+# -
+# Return:
+# color ("white" / "black)
   def getColor
     return @color
   end
   
+# Description:
+# setter of selected
+# Parameter(s):
+# boolean value
+# Return:
+# -
   def setSelected b
     @selected = b
   end
   
+# Description:
+# checks if the field is hovered
+# Parameter(s):
+# main
+# Return:
+# boolean value
   def isHovered main
     rel_x = @x +  @radius - main.mouse_x
     rel_y = @y + @radius - main.mouse_y
-    
-    #pythagoras                    
+                     
     if((rel_x**2 + rel_y **2) <= @radius**2)
       return true
     end
     return false
   end
   
+# Description:
+# getter of @isghost
+# Parameter(s):
+# -
+# Return:
+# boolean value
+# true : is a ghoststone
+# false : isn't a ghoststone
+  def isGhost
+    return @isghost
+  end
+  
+# Description:
+# sets a ghoststone on this field, which gets rendered and updated
+# Parameter(s):
+# -
+# Return:
+# -
   def setGhostStone
     @alpha = 0x60ffffff
     @isghost = true
@@ -79,20 +132,39 @@ class Field
     @color = "white"
   end
   
+# Description:
+# sets a normal stone on this field, which gets rendered and updated
+# Parameter(s):
+# color ("white"/"black")
+# Return:
+# -
   def setStone color
     @alpha = 0xffffffff
     @visible = true
     @isghost = false
     @stone_placed = true
+    @color = color
   end
-  
+
+# Description:
+# removes any kind of stone from this field (ghoststones and normal stones)
+# Parameter(s):
+# -
+# Return:
+# -
   def clear
     @visible = false
     @isghost = false
     @stone_placed = false
   end
   
-  def taken
+# Description:
+# checks if this field is taken by a ghoststone or a normal stone
+# Parameter(s):
+# -
+# Return:
+# boolean value
+  def isTaken
     return @stone_placed
   end
   

@@ -1,16 +1,5 @@
 class Button
   
-  @xpos
-  @ypos
-  @width
-  @height
-  @img_0
-  @img_1
-  @lable
-  @paddingx
-  @paddingy
-  @main
-  
   @hover = false
   @clicked = false
   
@@ -27,6 +16,15 @@ class Button
     @main = main
   end
   
+  # Description:
+  # draws the button images dependent on the boolean @ishover, which is true
+  # if the mouses position is inside the rectangle/image
+  #
+  # Parameter(s):
+  # -
+  # 
+  # Return:
+  # -
   def draw
     if(!@hover)
       @img_0.draw(@xpos, @ypos, 0)
@@ -44,6 +42,14 @@ class Button
         return false
   end
   
+  # Description:
+  # updates the button, checks if the button was clicked
+  # Parameter(s):
+  # -
+  # Return:
+  # boolean value
+  # true : the button was clicked
+  # false: the button wasn't clicked
   def update
     
     if(isOverButton)
@@ -54,15 +60,30 @@ class Button
     
     if(@clicked)
       @clicked = false
+      @hover = false
       return true
     end
     
+    return false
+    
   end
   
+  # Description:
+  # setter; used to tell the button that it was clicked
+  # Parameter(s):
+  # -
+  # Return:
+  # -
   def setClicked b
     @clicked = b
   end
   
+  # Description:
+  # getter; used to check if the button is hovered by the mouse
+  # Parameter(s):
+  # -
+  # Return:
+  # boolean value
   def isHover
     return @hover
   end

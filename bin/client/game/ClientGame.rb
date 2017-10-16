@@ -1,18 +1,19 @@
 require 'bin/client/game/Console'
 require 'bin/client/game/Field'
+require 'bin/server/Server'
 
 
 class ClientGame
   
-  def initialize p1, p2, main
+  def initialize p1, p2, main, ip, port
     
     @main = main
     @mouse_clicked = false
     
-    @selected_stone
+    @selected_stone = -1
     
     ###########################################################
-    # stone Fields (use  factor 0.375) relative to the map #
+    # stone Fields (use  factor 0.375) relative to the map    #
     ###########################################################
     # 1. = 165, 165 2. = 800, 165 3. = 1434, 165                                                     
     # 4. = 384, 384 5. = 800, 384 6. = 1216, 384
@@ -35,25 +36,33 @@ class ClientGame
     
     @p1_remaining_playstones = 9
     @p2_remaining_playstones = 9
+    @p1_taken_stones = 0
+    @p2_taken_stones = 0
     
     #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     #TODO rendering new imgs and removing scalings
-    #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     
     @xpos_map = 300
     @ypos_map = 20
       
     #images
-    @img_map = Gosu::Image.new("C:/Users/konop/Documents/mill/assets/game/map.png")
-    @img_background = Gosu::Image.new("C:/Users/konop/Documents/mill/assets/game/background_game.png")
-    @img_playstone_white = Gosu::Image.new("C:/Users/konop/Documents/mill/assets/game/playstone_white.png")
-    @img_playstone_black = Gosu::Image.new("C:/Users/konop/Documents/mill/assets/game/playstone_black.png")
+    @img_map = Gosu::Image.new("assets/game/map.png")
+    @img_background = Gosu::Image.new("assets/game/background_game.png")
+    @img_playstone_white = Gosu::Image.new("assets/game/playstone_white.png")
+    @img_playstone_black = Gosu::Image.new("assets/game/playstone_black.png")
     
     @console = Console.new(300, 642, 600, 68)
     
-    endTurn
+    endTurn #
   end
   
+  # Description:
+  # draws all elements in the game
+  # Parameter(s):
+  # -
+  # Return:
+  # -
   def draw
     #width:1200 * height:700 padding:20
     @img_background.draw(0,2,0)
@@ -66,72 +75,225 @@ class ClientGame
     end
     
     ### drawing remaining PLAYSTONES of PLAYER2
-    for i in 2..@p1_remaining_playstones + 1
+    for i in 2..@p2_remaining_playstones + 1
       @img_playstone_black.draw(1200 - i * 26 , 20, 0, 0.2, 0.2)
     end
     
+    ### drawing playstones 
     for field in @fields
       field.draw(@main)
     end
     
-  end
-  
-  def update
+    ### drawing taken playstones for p1
+    for i in 1..@p1_taken_stones
+      @img_playstone_black.draw( 250, i * 26 + 50, 0, 0.375, 0.375)
+    end
     
-#    #mouse clicked on a field
-#    if(@your_turn)
-#      if(@clicked)
-#        for i in 0..@fields.length
-#          if(@fields[i].update)
-#            clickField(i)
-#          end
-#        end
-#      end
-#    end
+    ### drawing taken playstones for p2
+    for i in 1..@p2_taken_stones
+      @img_playstone_white.draw( 910, i * 26 + 50, 0, 0.375, 0.375)
+    end
+    
   end
   
+  # Description:
+  # updates all elements in the game
+  # Parameter(s):
+  # -
+  # Return:
+  # -
+  def update 
+    #mouse clicked on a field
+    if(@your_turn)
+      if(@mouse_clicked)
+        for i in 0.. @fields.length - 1
+          if(@fields[i].update())
+            clickField(i)
+          end
+        end
+        @mouse_clicked = false
+      end
+    else
+      connection = Connection.new(ip, port)
+      msg = connection.gets.chop.force_encoding(Encoding::UTF_8)
+      msg_array = msg.split(';')
+      recieveMessage(msg_array)
+    end
+  end
+  
+  def recieveMessage msg
+    action = msg[0]
+    case action
+      when "move"
+        then @selected_stone = msg[1]
+             moveStone(msg[2], "black")
+             endTurn
+      when "set"
+        then @fields[msg[1]].setStone("black")
+      when "remove"
+        then @fields[msg[1]].clear
+             @p2_taken_stones += 1
+      when "enemy_won"
+        then #TODO
+      when "enemy_stucked"
+        then #TODO
+    end
+  end
+  
+  # Description:
+  # set all 'Fields' in the list '@fields', which aren't occupied to a ghost stone
+  # this is used to show the possible positions, to the player, where he can set a stone
+  # (only if the player has remaining stones)
+  # Parameter(s):
+  # -
+  # Return:
+  # - 
   def genPossiblePositions
     if(@p1_remaining_playstones > 0)
-      
       for i in 0..23
-        if(!@fields[i].taken)
+        if(!@fields[i].isTaken)
           @fields[i].setGhostStone
         end
       end
-      
     end
   end
   
+  # Description:
+  # selects a field 'i', and generates possible positions, for the stone, where it could move to
+  # Parameter(s):
+  # i : the index of the stone in the list '@fields'
+  # Return:
+  # -
+  def selectField i
+    removeGhostStones
+    @fields[i].setSelected(true)
+    ghost_fields = getConnected(i)
+    @selected_stone = i
+    
+    if(@p2_taken_stones < 6)
+      for x in ghost_fields
+        if(!@fields[x].isTaken)
+          @fields[x].setGhostStone
+        end
+      end
+    else
+      for x in 0.. @fields.length - 1
+        if(!@fields[x].isTaken)
+          @fields[x].setGhostStone
+        end
+      end
+    end
+    
+  end
+  
+  # Description:
+  # removes all 'GhostStones'
+  # Parameter(s):
+  # -
+  # Return:
+  # -
+  def removeGhostStones
+    for x in @fields
+      if(x.isGhost)
+        x.clear
+      end
+    end  
+  end
+  
+  # Description:
+  # returns an array with all connected positions
+  #
+  # Parameter(s):
+  # startpos - int: position to be checked
+  #
+  # Return:
+  # array of integers with the connected positions
+  #
+  def getConnected(startpos)
+      array = [(startpos - 3) % 24,(startpos + 3) % 24]
+      case startpos % 6
+        when 0
+          array << startpos + 1
+        when 1
+          array << startpos + 1
+          array << startpos - 1
+        when 2
+          array << startpos - 1
+  
+      end
+      return array
+  end
   
   def clickField i
     if(@fields[i].getColor == "white")
-      if(@field[i].isGhost && @selected_stone =! nil)
-        moveStone(i)
+      if(@fields[i].isGhost)
+        if(@selected_stone >= 0)  
+          #if(sendDataToServer("moved;" + @selected_stone + ";" + i))
+            moveStone(i,"white")
+            endTurn
+          #end
+        else
+          #if(sendDataToServer("place;" + i))
+            @fields[i].setStone("white")
+            @console.print("You placed your stone.",0xff_ffffff)
+            @p1_remaining_playstones -= 1
+            endTurn
+          #end
+        end
+      else
+        selectField(i)
       end
     end
   end
   
-  #sends a request to place a stone on the field 'i'
-  def placeStone i
-  #TODO
+  def moveStone i, color
+    @fields[i].setStone(color)
+    @fields[@selected_stone].clear
   end
   
-  def moveStone i
-  #TODO
-  end
-  
-  def sendDatatoServer string
-  #TODO
+  def sendDataToServer string
+    connection = Connection.new
+    connection.puts(string)
+    msg = connection.gets.chop.force_encoding(Encoding::UTF_8)
+    
+    case msg
+    
+      when "invalid"
+        then
+        @console.print("Invalid turn",0xff_ff0000)
+        return true
+      when "ok"
+        then
+        return true
+      when "mill"
+        then
+        @remove_a_stone = true 
+        #TODO mill
+        @console.print("You have a mill!",0xff_12ff00)
+        return true
+      when "won"
+        #TODO
+        then
+      else
+        @console.print("[ERROR] failed interpreting server data",0xff_ff0000)
+        return false
+    end
+    
   end
   
   def endTurn
     @your_turn = !@your_turn
+    removeGhostStones
     if(@your_turn)
-      @console.print("Your turn!",0xff_12ff00)
+      @console.print("It's your turn!",0xff_12ff00)
       genPossiblePositions()
     else
-      #TODO send the server a msg which says that your turn is over
+      @console.print("Its your enemy's turn!",0xff_ffcc00)
     end
+  end
+  
+  def mouseClicked
+    @mouse_clicked = true
   end
   
 end

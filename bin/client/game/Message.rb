@@ -10,6 +10,12 @@ class Message
     @img.draw(xpos, ypos, 0, 1, 1, Gosu::Color.argb(@color)) 
   end
   
+  # Description:
+  # getter of the 
+  # Parameter(s):
+  # 
+  # Return:
+  # 
   def getImage
     return @img
   end
