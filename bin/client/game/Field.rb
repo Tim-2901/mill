@@ -15,10 +15,10 @@ class Field
     @color = ""
     
     #images
-    @img_playstone_white = Gosu::Image.new("assets/game/playstone_white.png")
-    @img_playstone_black = Gosu::Image.new("assets/game/playstone_black.png")
-    @img_playstone_selection = Gosu::Image.new("assets/game/playstone_selection.png")
-    
+    @img_playstone_white = Gosu::Image.new("C:/Users/konop/Documents/mill/assets/game/playstone_white.png")
+    @img_playstone_black = Gosu::Image.new("C:/Users/konop/Documents/mill/assets/game/playstone_black.png")
+    @img_playstone_selection = Gosu::Image.new("C:/Users/konop/Documents/mill/assets/game/playstone_selection.png")
+    puts "stone created"
   end
   
   # Description:

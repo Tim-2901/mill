@@ -1,11 +1,13 @@
 require 'gosu'
+$LOAD_PATH << 'C:/Users/konop/Documents/mill/'
 require 'bin/client/Button'
 require 'bin/client/TextField'
+require 'bin/client/Collision'
 require 'bin/client/game/ClientGame'
 require 'bin/client/game/Connection'
 require 'bin/server/server'
 require 'bin/client/lobby/Lobby'
-require 'bin/server/Console'
+require 'bin/server/console'
 
 class Window < Gosu::Window
   WIDTH, HEIGHT, PADDING = 1200, 700, 20
@@ -16,8 +18,8 @@ class Window < Gosu::Window
 
     #Texturen
     @main = self
-    @cursor = Gosu::Image.new("assets/game/curser_normal.png", false)
-    
+    @cursor = Gosu::Image.new("C:/Users/konop/Documents/mill/assets/game/curser_normal.png", false)
+
     @server_thread = nil
     @server = nil
     @string = ""
@@ -25,42 +27,47 @@ class Window < Gosu::Window
     @inlobby = false
     @lobby
     @active_textfield = nil
-    # 0 = button_join; 1 = button_create_server; 2 = sing up/in
+
     @button_list = [
-        Button.new(950, 50, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Join a Server", self),
-        Button.new(950, 150, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Create a Server", self),
-        Button.new(950, 450, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Welcome", self),
-        Button.new(950, 250, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Sign up", self),
-        Button.new(950, 350, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Rules", self)
+        Button.new(950, 50, ["C:/Users/konop/Documents/mill/assets/game/button_unpressed.png", "C:/Users/konop/Documents/mill/assets/game/button_hover.png"], "Join a Server", self),
+        Button.new(950, 150, ["C:/Users/konop/Documents/mill/assets/game/button_unpressed.png", "C:/Users/konop/Documents/mill/assets/game/button_hover.png"], "Create a Server", self),
+        Button.new(950, 450, ["C:/Users/konop/Documents/mill/assets/game/button_unpressed.png", "C:/Users/konop/Documents/mill/assets/game/button_hover.png"], "Welcome", self),
+        Button.new(950, 250,["C:/Users/konop/Documents/mill/assets/game/button_unpressed.png", "C:/Users/konop/Documents/mill/assets/game/button_hover.png"], "Sign up", self),
+        Button.new(950, 350,["C:/Users/konop/Documents/mill/assets/game/button_unpressed.png", "C:/Users/konop/Documents/mill/assets/game/button_hover.png"], "Rules", self)
     ]
-    @button_login = Button.new(100, 500, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Login", self)
-    @button_create = Button.new(100, 500, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Create Server", self)
-    @button_signUp = Button.new(100, 500, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "SignUp", self)
-    
+    @button_login = Button.new(100, 500, ["C:/Users/konop/Documents/mill/assets/game/button_unpressed.png", "C:/Users/konop/Documents/mill/assets/game/button_hover.png"], "Login", self)
+    @button_create = Button.new(50, 600, ["C:/Users/konop/Documents/mill/assets/game/button_unpressed.png", "C:/Users/konop/Documents/mill/assets/game/button_hover.png"], "Start/Stop Server", self)
+    @button_signUp = Button.new(100, 500, ["C:/Users/konop/Documents/mill/assets/game/button_unpressed.png", "C:/Users/konop/Documents/mill/assets/game/button_hover.png"], "SignUp", self)
+
     @textfield_list = [
         TextField.new(100, 200, 250, 40, "IP:Port", self ,true),
         TextField.new(100, 300, 250, 40, "Username", self, true),
         TextField.new(100, 400, 250, 40, "Password", self, false),
-        TextField.new(100, 200, 250, 40, "IP:Port", self, true),
+        #TextField.new(100, 200, 250, 40, "IP", self, true),
+        #TextField.new(100, 300, 250, 40, "Port", self, true),
+        #TextField.new(100, 400, 250, 40, "Name", self, true),
+        TextField.new(100, 200, 250, 40, "IP:Port", self ,true),
         TextField.new(100, 300, 250, 40, "Username", self, true),
-        TextField.new(100, 400, 250, 40, "Password", self, true)
+        TextField.new(100, 400, 250, 40, "Password", self, false)
     ]
-    
+
     @server_console = Console.new(50, 50, 550, 850, Gosu::Color.argb(0xff_000000), Gosu::Color.argb(0xff_ffffff), self)
+
 
     text =
         "
     This is <b>Nine Men's Morris!</b>
 
-    To play this Game you have to press <b>create a server</b> first.
-    Then you can invite your friends to <b>join the server</b>.
-    The default port is: <b>1234</b>
-    If you want to be listed in the leaderboard you have to <b>sign up/in</b> with a username and a password.
+    If this is the first time you play the game, you have to <b>Sign up</b> first.
+    To start a Game you may <b>Create a Server</b> first or <b>Join a Server</b> directly.
+    The default port is: <b>4713</b>
+    If you dont know the rules you can read them under <b>Rules</b>.
+    You may
 
     "
     text.gsub! /^ +/,''
     @text = Gosu::Image.from_text text,20,:width => WIDTH * PADDING
-    
+
     rules =
         "
       <b>Rules</b>
@@ -96,6 +103,7 @@ class Window < Gosu::Window
         button.draw()
       end
 
+
       case @active_tab
         when 0 then
           @text.draw(PADDING, PADDING, 0, 1, 1, Gosu::Color.argb(0xff_000000))
@@ -109,24 +117,22 @@ class Window < Gosu::Window
         when 2 then
 
           @button_create.draw
-#          for textfield in @textfield_list[3..5]
-#            textfield.draw
-#          end
+          #for textfield in @textfield_list[3..5]
+          #  textfield.draw
+          #end
           @server_console.draw
         when 3 then
-          
           for textfield in @textfield_list[3..5]
                 textfield.draw
           end
           @button_signUp.draw
         when 4 then
-          
           @rules.draw(PADDING, PADDING, 0, 1, 1, Gosu::Color.argb(0xff_000000))
+
       end
     else
       @lobby.draw()
     end
-
     @cursor.draw(self.mouse_x, self.mouse_y, 0)
   end
 
@@ -140,11 +146,11 @@ class Window < Gosu::Window
     case id
       #triggers when left mousebutton is pressed
       when Gosu::MS_LEFT
-        
+
         if(@inlobby)
           @lobby.click()
         end
-        
+
         #checks if a button is clicked
         for button in @button_list
           if(button.isHover())
@@ -162,11 +168,15 @@ class Window < Gosu::Window
           @button_create.setClicked(true)
         end
 
+        if(@button_signUp.isHover() && @active_tab == 3)
+          @button_signUp.setClicked(true)
+        end
+
         #checks if a textfield is selected; if so it will set it as selected textfield so you can write in it
         txtflds = case @active_tab
                     when 0 then []
                     when 1 then @textfield_list[0..2]
-                    when 2 then @textfield_list[3..5]
+                    when 2 then []
                     when 3 then @textfield_list[3..5]
                     when 4 then []
                   end
@@ -206,7 +216,7 @@ class Window < Gosu::Window
   def update
 
     self.caption = "(#{Gosu.fps} FPS)"
-    
+
     if(!@inlobby)
 
       ###updating buttons###
@@ -220,30 +230,31 @@ class Window < Gosu::Window
 
       if(@button_list[2].update())
         @active_tab = 0
+
       end
-      
+
       if(@button_list[3].update())
         @active_tab = 3
+
       end
-      
+
       if(@button_list[4].update())
         @active_tab = 4
       end
-      
+
       if(@button_signUp.update())
         connection = Connection.new(@textfield_list[3].fieldtext, 4713)
         answer = connection.sending("signUp" + ";" + @textfield_list[4].fieldtext + ";" + @textfield_list[5].fieldtext)
       end
-      
+
       if(@button_login.update())
         connection = Connection.new(@textfield_list[0].fieldtext, 4713)
         answer = connection.sending("signIn" + ";" + @textfield_list[1].fieldtext + ";" + @textfield_list[2].fieldtext)
         if(answer == "Login successful")
           @inlobby = true
           @lobby = Lobby.new(self, @textfield_list[1].fieldtext, @textfield_list[0].fieldtext, 4713)
-        end
+       end
       end
-
       if(@button_create.update())
         if(@server_thread == nil)
           puts @server_console
@@ -260,6 +271,10 @@ class Window < Gosu::Window
     end
 
   end
+  def consoleUpdate(msg)
+    @console.write(msg)
+  end
+
 end
 
 

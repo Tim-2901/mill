@@ -1,5 +1,5 @@
 class Button
-  
+
   @hover = false
   @clicked = false
   
@@ -22,7 +22,7 @@ class Button
   #
   # Parameter(s):
   # -
-  # 
+  #
   # Return:
   # -
   def draw
@@ -51,6 +51,7 @@ class Button
   # true : the button was clicked
   # false: the button wasn't clicked
   def update
+    
     if(isOverButton)
       @hover = true
     else
@@ -65,7 +66,7 @@ class Button
     
     return false
   end
-  
+
 # Description:
 # sets the lable of the button
 # Parameter(s):

@@ -418,7 +418,7 @@ class Server
       (@queue[1][1]).puts(@queue[0][0])
       puts "finished"
       GameServer.new(@queue, @console)
-
+      @queue = []
     end
     puts "qq"
     return false
