@@ -1,5 +1,4 @@
-$LOAD_PATH << 'C:/Users/konop/Documents/mill/'
-require 'bin/client/game/Console'
+require 'bin/client/game/ConsoleIngame'
 require 'bin/client/game/Field'
 require 'bin/server/Server'
 
@@ -7,12 +6,15 @@ require 'bin/server/Server'
 class ClientGame
   
   def initialize p1, p2, main, ip, port
-    puts "clientgame started"
+    
+    @ip = ip
+    @port = port
+    
     @main = main
     @mouse_clicked = false
     
     @selected_stone = -1
-    @connection = TCPSocket.new(ip, port)
+    
     ###########################################################
     # stone Fields (use  factor 0.375) relative to the map    #
     ###########################################################
@@ -23,17 +25,20 @@ class ClientGame
     # 16. = 608, 990 17. = 800, 990 18. = 992, 990 
     # 19. = 384, 1214 20. = 800, 1214 21. = 1216, 1214 
     # 22. = 165, 1435 23. = 800, 1435 24. = 1434, 1435                     
-    puts "creating fields"
+    
     @fields = [Field.new(800, 1435), Field.new(800, 1214), Field.new(800, 990),Field.new(165, 1435),Field.new(384, 1214),Field.new(608, 990), Field.new(165, 798), Field.new(383, 798), Field.new(607, 798), Field.new(165, 165),
     Field.new(384, 384), Field.new(608, 608),Field.new(800, 165),Field.new(800, 384),Field.new(800, 608),Field.new(1434, 165),Field.new(1216, 384),Field.new(992, 608),Field.new(992, 798), Field.new(1216, 798), Field.new(1436, 798),
     Field.new(992, 990),Field.new(1216, 1214),Field.new(1434, 1435)]
+    
+    @button_action = Button.new(950, 645, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Draw", main)
     
     @player1 = p1; #client player
     @player2 = p2; #enemy player
     
     @your_turn = false
-    
+    @game_over = false
     @remove_a_stone = false
+    @draw = false
     
     @p1_remaining_playstones = 9
     @p2_remaining_playstones = 9
@@ -48,19 +53,14 @@ class ClientGame
     @ypos_map = 20
       
     #images
-    puts "drawing map"
     @img_map = Gosu::Image.new("assets/game/map.png")
-    puts @img_map
     @img_background = Gosu::Image.new("assets/game/background_game.png")
-    puts @img
     @img_playstone_white = Gosu::Image.new("assets/game/playstone_white.png")
     @img_playstone_black = Gosu::Image.new("assets/game/playstone_black.png")
-
-    puts "drawing console"
-    @console = ConsoleGame.new(300, 642, 600, 68)
-
-    puts "init finished"
-    endTurn()
+    
+    @console = ConsoleIngame.new(300, 642, 600, 68)
+    
+    endTurn #
   end
   
   # Description:
@@ -70,15 +70,13 @@ class ClientGame
   # Return:
   # -
   def draw
-    puts "drawing clientgame"
     #width:1200 * height:700 padding:20
-    puts "bgdraw"
     @img_background.draw(0,2,0)
-    puts "consoledraw"
     @console.draw
-    puts "mapdraw"
     @img_map.draw(@xpos_map, @ypos_map, 0, 0.375, 0.375)
-    puts "drawing remaining playstones"
+    
+    @button_action.draw
+    
     ### drawing remaining PLAYSTONES of PLAYER1
     for i in 1..@p1_remaining_playstones
       @img_playstone_white.draw(i * 26 , 20, 0, 0.2, 0.2)
@@ -114,21 +112,38 @@ class ClientGame
   # -
   def update 
     #mouse clicked on a field
-    if(@your_turn)
-      if(@mouse_clicked)
-        for i in 0.. @fields.length - 1
-          if(@fields[i].update())
-            clickField(i)
+    if(!@game_over)
+      if(@your_turn)
+        if(@mouse_clicked)
+          for i in 0.. @fields.length - 1
+            if(@fields[i].update())
+              clickField(i)
+            end
           end
+          @mouse_clicked = false
         end
-        @mouse_clicked = false
+      else
+        connection = Connection.new(@ip, @port)
+        msg = connection.gets.chop.force_encoding(Encoding::UTF_8)
+        msg_array = msg.split(';')
+        recieveMessage(msg_array)
       end
+      
+      if(@button_action.update)
+        if(!@draw)
+          @connection.puts("draw")
+          @conole.print("You've send a request for a draw.")
+        else
+          @connection.puts("draw")
+        end       
+      end
+        
     else
-      connection = Connection.new(ip, port)
-      msg = connection.gets.chop.force_encoding(Encoding::UTF_8)
-      msg_array = msg.split(';')
-      recieveMessage(msg_array)
+      if(@button_action.update)
+        return true
+      end
     end
+    return false
   end
   
   def recieveMessage msg
@@ -144,9 +159,33 @@ class ClientGame
         then @fields[msg[1]].clear
              @p2_taken_stones += 1
       when "enemy_won"
-        then #TODO
+        then 
+        @game_over = true
+        @console.print("Your enemy has won the game!",0xff_ff0000)
+        @button_action.setLable("Exit")
       when "enemy_stucked"
-        then #TODO
+        then 
+        @game_over = true
+        @console.print("Your enemy is stucked, you've won the game!",0xff_ff1200)
+        @button_action.setLable("Exit")
+      when "won"
+        then 
+        @game_over = true
+        @console.print("You've won the game!",0xff_ff1200)
+        @button_action.setLable("Exit")
+      when "stucked"
+        then
+        @game_over = true
+        @console.print("You're stucked, your enemy has won the game!",0xff_ff0000)
+        @button_action.setLable("Exit")
+      when "draw" 
+        then
+        @game_over = true
+        @console.print("The game is a draw!",0xff_ff0000)
+        @button_action.setLable("Exit")
+     when "request_draw"
+       @draw = true
+       @console.print("You're enemy offerce you a draw, accept by clicking the \"draw\" button.")
     end
   end
   
@@ -262,9 +301,9 @@ class ClientGame
   end
   
   def sendDataToServer string
-
-    @connection.puts(string)
-    msg = @connection.gets.chop.force_encoding(Encoding::UTF_8)
+    connection = Connection.new(@ip, @port)
+    connection.puts(string)
+    msg = connection.gets.chop.force_encoding(Encoding::UTF_8)
     
     case msg
     
@@ -304,6 +343,8 @@ class ClientGame
   
   def mouseClicked
     @mouse_clicked = true
+    if(@button_action)
+    end
   end
   
 end
