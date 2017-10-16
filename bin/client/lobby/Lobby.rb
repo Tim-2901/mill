@@ -55,6 +55,7 @@ class Lobby
         
       when 3 #game
         then
+        @game.draw
     end
   end
   

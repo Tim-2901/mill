@@ -49,13 +49,15 @@ class ClientGame
       
     #images
     puts "drawing map"
-    @img_map = Gosu::Image.new("C:/Users/konop/Documents/mill/assets/game/map.png")
-    @img_background = Gosu::Image.new("C:/Users/konop/Documents/mill/assets/game/background_game.png")
-    @img_playstone_white = Gosu::Image.new("C:/Users/konop/Documents/mill/assets/game/playstone_white.png")
-    @img_playstone_black = Gosu::Image.new("C:/Users/konop/Documents/mill/assets/game/playstone_black.png")
+    @img_map = Gosu::Image.new("assets/game/map.png")
+    puts @img_map
+    @img_background = Gosu::Image.new("assets/game/background_game.png")
+    puts @img
+    @img_playstone_white = Gosu::Image.new("assets/game/playstone_white.png")
+    @img_playstone_black = Gosu::Image.new("assets/game/playstone_black.png")
 
     puts "drawing console"
-    @console = Console.new(300, 642, 600, 68)
+    @console = ConsoleGame.new(300, 642, 600, 68)
 
     puts "init finished"
     endTurn()
@@ -68,11 +70,15 @@ class ClientGame
   # Return:
   # -
   def draw
+    puts "drawing clientgame"
     #width:1200 * height:700 padding:20
+    puts "bgdraw"
     @img_background.draw(0,2,0)
+    puts "consoledraw"
     @console.draw
+    puts "mapdraw"
     @img_map.draw(@xpos_map, @ypos_map, 0, 0.375, 0.375)
-    
+    puts "drawing remaining playstones"
     ### drawing remaining PLAYSTONES of PLAYER1
     for i in 1..@p1_remaining_playstones
       @img_playstone_white.draw(i * 26 , 20, 0, 0.2, 0.2)

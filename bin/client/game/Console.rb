@@ -1,7 +1,7 @@
 $LOAD_PATH << 'C:/Users/konop/Documents/mill/'
 require 'bin/client/game/Message'
 
-class Console
+class ConsoleGame
   
   def initialize xpos, ypos, width, height
     @xpos = xpos
