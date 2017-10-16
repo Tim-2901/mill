@@ -3,6 +3,8 @@
 class Console
 
   def initialize(xpos, ypos, height, width, color, text_color, main)
+    @fontsize = 17
+    @padding = 10
     @xpos = xpos
     @ypos = ypos
     @height = height
@@ -10,7 +12,7 @@ class Console
     @color = color
     @text_color = text_color
     @text = ""
-    @textimg = Gosu::Image.from_text("", 20)
+    @textimg = Gosu::Image.from_text("", @fontsize)
     @main = main
     @textlist = []
     puts "initialized console"
@@ -22,7 +24,7 @@ class Console
       update
     end
     Gosu.draw_rect(@xpos, @ypos, @width, @height, @color)
-    @textimg.draw(@xpos + 10, @ypos + 10, 0, 1, 1, @text_color)
+    @textimg.draw(@xpos + @padding, @ypos + @padding, 0, 1, 1, @text_color)
 
   end
 
@@ -35,8 +37,12 @@ class Console
   end
 
   def write(input)
-    @text += (input + "\n")
-    @textimg = Gosu::Image.from_text(@text, 20)
+      @text += (input + "\n")
+      if(@text.split("\n").length * @fontsize + @padding >= @height)
+        @text = @text[(@text.index("\n") + 1)..-1]
+      end
+      @textimg = Gosu::Image.from_text(@text, @fontsize)
+      puts @textimg.height
   end
 
   def clear

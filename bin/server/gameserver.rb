@@ -1,7 +1,6 @@
 require "sqlite3"
 require "socket"
-$LOAD_PATH << 'C:/Users/konop/Documents/mill/'
-require 'bin/server/gameserver'
+
 # Description:
 # creates a server for 2 player
 #
@@ -10,60 +9,46 @@ require 'bin/server/gameserver'
 #
 # Return:
 #
-class Server
+class GameServer
 
-  def initialize(ip, port, console, main)
-    @main = main
-    puts console
+  def initialize(connections,console)
     @console = console
-    @console.clear
-
-    if(ip == "localhost")
-      ip = Socket.ip_address_list[3].ip_address
-    end
-    @console.textlist("Server is running under #{ip}:#{port}")
+    @players = [connections[0][0],connections[1][0]]
     @field = [nil] * 24
-    @db = SQLite3::Database.new("player.sqlite")
     @turn = nil
-    @server = TCPServer.new(ip,port)
-    @queue = []
-    # set the encoding of the connection to UTF-8
-    @server.set_encoding(Encoding::UTF_8)
-    mainloop
+    @queue = connections
+    @connections = [connections[0][1],connections[1][1]]
+    startGame
   end
 
 
-  # Description:
-  # checks which kind of message is recieved an calls the corresponding method
-  #
-  # Parameter(s):
-  # msg - Array of Strings: An array out of the messages and the action
-  # connection - TCPSocket: The active conection
-  # Return:
-  # nothing
-  def recieveMessage(msg,connection)
+  def recieveMessage(player)
+    connection = @connections[player]
+    msg_array = connection.gets.chop.force_encoding(Encoding::UTF_8)
+    msg = msg_array.split(';')
     rtrn = false
     action = msg[0]
     @console.textlist("Action: " + action)
-    # possible Actions are: signIn; signUp; moved; quequeUp; place;
+    @console.textlist(msg.to_s)
+    # possible Actions are: signIn; signUp; moved; queueUp; place;
     case action
       when "signIn"
-        then rtrn = signIn(msg[1],msg[2])
+      then rtrn = signIn(msg[1],msg[2])
 
       when "signUp"
-        then rtrn = signUp(msg[1],msg[2])
+      then rtrn = signUp(msg[1],msg[2])
 
-      #when "moved"
-      #  then rtrn = moved(msg[1],msg[2], connection)
+      when "moved"
+        then rtrn = moved(msg[1],msg[2], connection)
 
       when "queueUp"
-        then rtrn = queue(msg[1], connection)
+      then rtrn = queue(msg[1], connection)
 
-     #when "place"
-     #  then rtrn = place(msg[1], connection)
+      when "place"
+        then rtrn = place(msg[1])
 
       when "leaderboard"
-        then rtrn = leaderboard(msg[1])
+      then rtrn = leaderboard(msg[1])
 
 
       else
@@ -72,73 +57,26 @@ class Server
     if(rtrn != false)
       connection.puts(rtrn)
       puts rtrn
+      @console.textlist(rtrn)
     end
-  end
-
-  # Description:
-  # signs the user into his account if the password is correct
-  #
-  # Parameter(s):
-  # username - string: Name of the User
-  # pw - string: The users password
-  # connection - TCPSocket: The active connection
-  #
-  # Return:
-  #
-  def signIn(username,pw)
-    begin
-      @console.textlist("Username: " + username + "\n" + "Password: " + ("●" * pw.length))
-
-      query = "SELECT pw FROM player WHERE name = :username"
-
-      db_pw = @db.execute(query,
-                  :username => username)
-      if (db_pw[0][0] == pw)
-        msg = "Login successful"
-      else
-        msg = "Wrong password"
-      end
-    rescue Exception => excep
-      msg = handleException(excep, "player")
+    if(rtrn != "won" && rtrn != "stuck")
+      if(player == 0)then player = 1 else player = 0 end
+      recieveMessage(player)
+    else
 
     end
-    @console.textlist(msg)
-    return msg
-
 
   end
 
-  # Description:
-  # signs the user up if he has no account
-  #
-  # Parameter(s):
-  # username - string: Name of the User
-  # pw - string: The users password
-  # connection - TCPSocket: The active connection
-  #
-  # Return:
-  #
-  def signUp(username,pw)
-    begin
-      @console.textlist("Username: " + username + "\n" + "Password: " + ("●" * pw.length))
-
-    statement ="INSERT INTO player
-            VALUES (:username, :pw, 0, 0)"
-
-    @db.execute(statement,
-               :username   => username,
-               :pw => pw)
-
-
-    msg = "Sign Up successful"
-      # if the username is already taken ruby would throw a exeption and terminate the game.
-      # to avoid this the execption is catched and a hint is shown in the login screen.
-    rescue Exception => excep
-      msg = handleException(excep, "player")
-      @console.textlist(msg)
-    return msg
-    end
-
+  def startGame
+    @connections[0].puts[@players[1]]
+    @connections[1].puts[@players[0]]
+    x = rand(2)
+    y = if(x == 1)then 0 else 1 end
+    @turn = @players[x]
+    @connections[x].puts("yourTurn")
+    @connections[y].puts("enemyTurn")
+    recieveMessage(x)
   end
 
   # Description:
@@ -158,8 +96,8 @@ class Server
     # checks if the move is valid
     allowed = isAllowed(startpos, endpos, no)
     # writes it to the array
-    if(allowed == "invalid") then return "invalid" end
-    confirmMove(startpos, endpos, connection)
+    if(allowed == "invalid") then changeTurn(); return "invalid" end
+    confirmMove(startpos, endpos)
     mill = checkIfMill(endpos)
     changeTurn()
     if(mill == "mill")then handleMill(connection) end
@@ -187,7 +125,7 @@ class Server
     end
     if(no >= 3)
       if(!isConnected(startpos, endpos))
-      return "invalid"
+        return "invalid"
       end
     end
 
@@ -241,18 +179,18 @@ class Server
   # array of integers with the connected positions
   #
   def getConnected(startpos)
-      array = [(startpos - 3) % 24,(startpos + 3) % 24]
-      case startpos % 6
-        when 0
-          array << startpos + 1
-        when 1
-          array << startpos + 1
-          array << startpos - 1
-        when 2
-          array << startpos - 1
+    array = [(startpos - 3) % 24,(startpos + 3) % 24]
+    case startpos % 6
+      when 0
+        array << startpos + 1
+      when 1
+        array << startpos + 1
+        array << startpos - 1
+      when 2
+        array << startpos - 1
 
-      end
-      return array
+    end
+    return array
   end
 
   # Description:
@@ -265,7 +203,7 @@ class Server
   #
   # Return:
   # nothing
-  def confirmMove(startpos, endpos, connection)
+  def confirmMove(startpos, endpos)
     @field[startpos] = nil
     @field[endpos] = @turn
   end
@@ -293,7 +231,7 @@ class Server
         array = [[endpos + 3, endpos + 6],[endpos - 3, endpos - 6]]
     end
     for i in 0..array.length - 1
-      if(field[array[i][0] % 24] == @turn && field[array[i][1] % 24] == @turn)
+      if(@field[array[i][0] % 24] == @turn && @field[array[i][1] % 24] == @turn)
         return "mill"
       end
     end
@@ -330,13 +268,13 @@ class Server
   def isStuck
     occupied = []
     for i in 0..@field.length - 1
-      if (@field[i] == @turn)then occupied << @turn end
+      if (@field[i] == @turn)then occupied << i end
     end
     positions = []
     positions << occupied.each{|x| getConnected(x)}
     positions.uniq
-    positions.each{|x| if(isOccupied!(x))then return true end}
-    return false
+    positions.each{|x| if(isOccupied!(x))then return false end}
+    return true
 
   end
 
@@ -349,10 +287,10 @@ class Server
   # Return:
   # nothing
   def changeTurn()
-    if(@turn == black)
-      @turn = white
+    if(@turn == @players[0])
+      @turn = @players[1]
     else
-      @turn = black
+      @turn = @players[0]
     end
   end
 
@@ -370,12 +308,12 @@ class Server
     no = 0
     @field.each{
         |i|
-        if i == @turn
-          no += 1
-        end
+      if i == @turn
+        no += 1
+      end
 
     }
-  return no
+    return no
   end
 
   # Description:
@@ -397,26 +335,6 @@ class Server
   end
 
   # Description:
-  # queues a player
-  # if 2 players are in the q the game is started
-  #
-  # Parameter(s):
-  # player - string: name of the player
-  # connection - TCPSocket: active connection
-  #
-  # Return:
-  # false if there is only 1 player in the q
-  def queue(player, connection)
-    @queue << [player, connection]
-    if(@queue.length > 1)
-      GameServer.new(@queue, @console)
-    end
-    puts "qq"
-    return false
-
-  end
-
-  # Description:
   # is called when a player places a stone
   #
   # Parameter(s):
@@ -433,7 +351,7 @@ class Server
     if(checkIfMill(pos))
       handle(connection)
     end
-  return  "ok"
+    return  "ok"
   end
 
   # Description:
@@ -456,53 +374,4 @@ class Server
     return msg
   end
 
-  def consoleOutput(msg)
-
-    @main.consoleUpdate(msg)
-  end
-
-  # Description:
-  # gives back a leaderboard
-  #
-  # Parameter(s):
-  # player - string: player who calls the fnc
-  #
-  # Return:
-  # a list of the top ten players with [name, wins, loses, winrate, score]-
-  # also your own stats with ur rank will be returned as the last element of the list (list[10])
-  # the score is calculated by winrate**2 * games**0.5
-
-  def leaderboard(player)
-    query = "SELECT name,wins,loses FROM player WHERE name != :name"
-
-    db_kda = @db.execute(query,
-                         :name => "Ssdadwadwa")
-    for i in 0..db_kda.length - 1
-      db_kda[i] << if((games = (db_kda[i][1] + db_kda[i][2])) != 0)then db_kda[i][1].to_f / games.to_f else 0 end
-      db_kda[i] << db_kda[i][3]**2 * games**0.5
-    end
-    db_kda.sort! { |x,y| y[4] <=> x[4] }
-    for i in 0..db_kda.length - 1
-      if db_kda[i][0] == player then playerkda = i; break end
-    end
-    playerkda = [db_kda[playerkda] + [playerkda]]
-    db_kda = db_kda[0..9] + playerkda
-
-    @console.textlist("leaderboard array returned")
-    return db_kda.to_s
-  end
-
-  def mainloop
-    loop do
-      connection = @server.accept
-      @console.textlist("new connection accepted")
-
-      connection.set_encoding(Encoding::UTF_8)
-
-      msg = connection.gets.chop.force_encoding(Encoding::UTF_8)
-      msg_array = msg.split(';')
-      Thread.new{recieveMessage(msg_array,connection)}
-
-    end
-  end
 end
