@@ -5,7 +5,7 @@ class LoadingCircle
    @y = y
    @speed = speed 
    @angle = 0
-   @img = Gosu::Image.new("C:/Users/konop/Documents/mill/assets/game/loading.png")
+   @img = Gosu::Image.new("assets/game/loading.png")
   end
   
   def draw

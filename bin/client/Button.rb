@@ -1,16 +1,5 @@
 class Button
   
-  @xpos
-  @ypos
-  @width
-  @height
-  @img_0
-  @img_1
-  @lable
-  @paddingx
-  @paddingy
-  @main
-  
   @hover = false
   @clicked = false
   
@@ -33,7 +22,7 @@ class Button
   #
   # Parameter(s):
   # -
-  #
+  # 
   # Return:
   # -
   def draw
@@ -62,7 +51,6 @@ class Button
   # true : the button was clicked
   # false: the button wasn't clicked
   def update
-    
     if(isOverButton)
       @hover = true
     else
@@ -76,7 +64,16 @@ class Button
     end
     
     return false
-
+  end
+  
+# Description:
+# sets the lable of the button
+# Parameter(s):
+# string
+# Return:
+# -
+  def setLable string
+    @lable = Gosu::Image.from_text string,20
   end
   
   # Description:
