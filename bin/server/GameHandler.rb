@@ -1,4 +1,5 @@
-require './bin/server/game/Player.rb'
+$LOAD_PATH << 'C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/'
+require '/bin/server/game/Player.rb'
 
 class GameHandler
   

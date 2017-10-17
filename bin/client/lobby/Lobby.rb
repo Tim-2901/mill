@@ -1,15 +1,16 @@
 require 'socket'
+$LOAD_PATH << 'C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/'
 require 'bin/client/lobby/LoadingCircle'
 require 'bin/client/lobby/PlayerData'
 
 class Lobby
   
   def initialize main, username, ip, port
-    @button_queue = Button.new(500, 400, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Find Match", main)
-    @button_toplist = Button.new(500, 300, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Leaderboard", main)
-    @button_leave = Button.new(500, 500, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Leave Server", main)
-    @button_leave_queue = Button.new(500, 400, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Leave Queue", main)
-    @button_leave_toplist = Button.new(500, 600, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Back to Lobby", main)
+    @button_queue = Button.new(500, 400, ["C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_unpressed.png", "C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_hover.png"], "Find Match", main)
+    @button_toplist = Button.new(500, 300, ["C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_unpressed.png", "C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_hover.png"], "Leaderboard", main)
+    @button_leave = Button.new(500, 500, ["C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_unpressed.png", "C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_hover.png"], "Leave Server", main)
+    @button_leave_queue = Button.new(500, 400, ["C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_unpressed.png", "C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_hover.png"], "Leave Queue", main)
+    @button_leave_toplist = Button.new(500, 600, ["C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_unpressed.png", "C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_hover.png"], "Back to Lobby", main)
     @loading_circle = LoadingCircle.new(600, 350, 6)
     @username = username
     @main = main

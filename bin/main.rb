@@ -1,5 +1,5 @@
 require 'gosu'
-
+$LOAD_PATH << 'C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/'
 require 'bin/client/Button'
 require 'bin/client/TextField'
 require 'bin/client/game/ClientGame'
@@ -17,7 +17,7 @@ class Window < Gosu::Window
 
     #Texturen
     @main = self
-    @cursor = Gosu::Image.new("assets/game/curser_normal.png", false)
+    @cursor = Gosu::Image.new("C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/curser_normal.png", false)
 
     @server_thread = nil
     @server = nil
@@ -28,15 +28,15 @@ class Window < Gosu::Window
     @active_textfield = nil
 
     @button_list = [
-        Button.new(950, 50, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Join a Server", self),
-        Button.new(950, 150, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Create a Server", self),
-        Button.new(950, 450, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Welcome", self),
-        Button.new(950, 250,["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Sign up", self),
-        Button.new(950, 350,["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Rules", self)
+        Button.new(950, 50, ["C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_unpressed.png", "C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_hover.png"], "Join a Server", self),
+        Button.new(950, 150, ["C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_unpressed.png", "C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_hover.png"], "Create a Server", self),
+        Button.new(950, 450, ["C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_unpressed.png", "C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_hover.png"], "Welcome", self),
+        Button.new(950, 250,["C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_unpressed.png", "C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_hover.png"], "Sign up", self),
+        Button.new(950, 350,["C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_unpressed.png", "C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_hover.png"], "Rules", self)
     ]
-    @button_login = Button.new(100, 500, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Login", self)
-    @button_create = Button.new(50, 600, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Start/Stop Server", self)
-    @button_signUp = Button.new(100, 500, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "SignUp", self)
+    @button_login = Button.new(100, 500, ["C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_unpressed.png", "C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_hover.png"], "Login", self)
+    @button_create = Button.new(50, 600, ["C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_unpressed.png", "C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_hover.png"], "Start/Stop Server", self)
+    @button_signUp = Button.new(100, 500, ["C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_unpressed.png", "C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_hover.png"], "SignUp", self)
 
     @textfield_list = [
         TextField.new(100, 200, 250, 40, "IP:Port", self ,true),
