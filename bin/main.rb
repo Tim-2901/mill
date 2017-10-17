@@ -1,5 +1,5 @@
 require 'gosu'
-$LOAD_PATH << 'C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/'
+require 'bin/client/OfflineGame'
 require 'bin/client/Button'
 require 'bin/client/TextField'
 require 'bin/client/game/ClientGame'
@@ -17,7 +17,7 @@ class Window < Gosu::Window
 
     #Texturen
     @main = self
-    @cursor = Gosu::Image.new("C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/curser_normal.png", false)
+    @cursor = Gosu::Image.new("assets/game/curser_normal.png", false)
 
     @server_thread = nil
     @server = nil
@@ -28,15 +28,16 @@ class Window < Gosu::Window
     @active_textfield = nil
 
     @button_list = [
-        Button.new(950, 50, ["C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_unpressed.png", "C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_hover.png"], "Join a Server", self),
-        Button.new(950, 150, ["C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_unpressed.png", "C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_hover.png"], "Create a Server", self),
-        Button.new(950, 450, ["C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_unpressed.png", "C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_hover.png"], "Welcome", self),
-        Button.new(950, 250,["C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_unpressed.png", "C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_hover.png"], "Sign up", self),
-        Button.new(950, 350,["C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_unpressed.png", "C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_hover.png"], "Rules", self)
+        Button.new(950, 50, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Join a Server", self),
+        Button.new(950, 150, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Create a Server", self),
+        Button.new(950, 450, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Welcome", self),
+        Button.new(950, 250,["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Sign up", self),
+        Button.new(950, 350,["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Rules", self),
+        Button.new(950, 550,["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Play Offline", self)
     ]
-    @button_login = Button.new(100, 500, ["C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_unpressed.png", "C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_hover.png"], "Login", self)
-    @button_create = Button.new(50, 600, ["C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_unpressed.png", "C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_hover.png"], "Start/Stop Server", self)
-    @button_signUp = Button.new(100, 500, ["C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_unpressed.png", "C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_hover.png"], "SignUp", self)
+    @button_login = Button.new(100, 500, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Login", self)
+    @button_create = Button.new(50, 600, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Start/Stop Server", self)
+    @button_signUp = Button.new(100, 500, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "SignUp", self)
 
     @textfield_list = [
         TextField.new(100, 200, 250, 40, "IP:Port", self ,true),
@@ -124,7 +125,9 @@ class Window < Gosu::Window
           @button_signUp.draw
         when 4 then
           @rules.draw(PADDING, PADDING, 0, 1, 1, Gosu::Color.argb(0xff_000000))
-
+        when 5 then
+          @offlinegame.draw
+          
       end
     else
       @lobby.draw()
@@ -145,6 +148,10 @@ class Window < Gosu::Window
 
         if(@inlobby)
           @lobby.click()
+        end
+        
+        if(@offlinegame != nil)
+          @offlinegame.click()
         end
 
         #checks if a button is clicked
@@ -175,6 +182,7 @@ class Window < Gosu::Window
                     when 2 then []
                     when 3 then @textfield_list[3..5]
                     when 4 then []
+                    when 5 then []
                   end
         for textfield in txtflds
 
@@ -237,7 +245,12 @@ class Window < Gosu::Window
       if(@button_list[4].update())
         @active_tab = 4
       end
-
+        
+      if(@button_list[5].update())
+        @active_tab = 5
+        @offlinegame = OfflineGame.new(self)
+      end
+      
       if(@button_signUp.update())
         connection = Connection.new(@textfield_list[3].fieldtext, 4713)
         answer = connection.sending("signUp" + ";" + @textfield_list[4].fieldtext + ";" + @textfield_list[5].fieldtext)

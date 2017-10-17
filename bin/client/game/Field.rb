@@ -12,7 +12,7 @@ class Field
     @hover = false
     @radius = 20
     @selected = false
-    @color = ""
+    @color = nil
     
     #images
     @img_playstone_white = Gosu::Image.new("assets/game/playstone_white.png")
@@ -65,7 +65,6 @@ class Field
   def update
     if(@hover)
       @alpha = @normal_value
-      @stone_placed = true
       return true
     end
     return false
@@ -125,11 +124,11 @@ class Field
 # -
 # Return:
 # -
-  def setGhostStone
+  def setGhostStone color
     @alpha = 0x60ffffff
     @isghost = true
     @visible = true
-    @color = "white"
+    @color = color
   end
   
 # Description:
@@ -156,6 +155,7 @@ class Field
     @visible = false
     @isghost = false
     @stone_placed = false
+    @color = nil
   end
   
 # Description:
@@ -166,6 +166,13 @@ class Field
 # boolean value
   def isTaken
     return @stone_placed
+  end
+  
+  def getNormalColor
+    if(@isghost)
+      return nil
+    end
+    return @color
   end
   
 end

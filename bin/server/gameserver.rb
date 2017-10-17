@@ -67,8 +67,6 @@ class GameServer
       if(player == 0)then player = 1 else player = 0 end
       @connections[player].puts(
       "enemysmove;#{@move[0].to_s};#{@move[1].to_s};#{@move[2].to_s}"
-
-
       )
       recieveMessage(player)
     else

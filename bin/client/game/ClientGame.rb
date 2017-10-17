@@ -37,6 +37,7 @@ class ClientGame
     
     @thread_active = false
     @remove_a_stone = false
+    @mill = false
     
     @p1_remaining_playstones = 9
     @p2_remaining_playstones = 9
@@ -139,13 +140,16 @@ class ClientGame
             msg = @connection.gets.chop.force_encoding(Encoding::UTF_8)
             msg_array = msg.split(';')
             @thread_active = false
-            @recive_message = msg_array
+            @receive_message = msg_array
           }
+
         end
         
-        if(@recive_message != nil)
-          recieveMessage(@recive_message)
-          @recive_message = nil
+        if(@receive_message != nil)
+          puts "recievem msg: " + @receive_message.to_s
+
+          receiveMessage(@receive_message)
+          @receive_message = nil
         end
         
       end
@@ -167,7 +171,15 @@ class ClientGame
     return false
   end
   
-  def recieveMessage msg
+  # Description:
+  # receives messages in the enemy's turn
+  #
+  # Parameter(s):
+  # String - msg
+  #
+  # Return:
+  # -
+  def receiveMessage msg
     action = msg[0]
     case action
       when "enemysmove"
@@ -184,7 +196,10 @@ class ClientGame
              end
              endTurn
       when "enemy_won"
-        then #TODO
+        then
+        @game_over = true
+        @console.print("Your enemy won the game!",0xff_ff1200)
+        @button_action.setLable("Exit")
       when "enemy_stuck"
         then
         @game_over = true
@@ -223,7 +238,7 @@ class ClientGame
     if(@p1_remaining_playstones > 0)
       for i in 0..23
         if(!@fields[i].isTaken)
-          @fields[i].setGhostStone
+          @fields[i].setGhostStone("white")
         end
       end
     end
@@ -244,17 +259,16 @@ class ClientGame
     if(@p2_taken_stones < 6)
       for x in ghost_fields
         if(!@fields[x].isTaken)
-          @fields[x].setGhostStone
+          @fields[x].setGhostStone("white")
         end
       end
     else
       for x in 0.. @fields.length - 1
         if(!@fields[x].isTaken)
-          @fields[x].setGhostStone
+          @fields[x].setGhostStone("white")
         end
       end
     end
-    
   end
   
   # Description:
@@ -290,11 +304,17 @@ class ClientGame
           array << startpos - 1
         when 2
           array << startpos - 1
-  
       end
       return array
   end
   
+  # Description:
+  # runs methods, if a field was clicked
+  # for example : clicking a black stone to remove it
+  # Parameter(s):
+  # -
+  # Return:
+  # -
   def clickField i
     if(@fields[i].getColor == "white")
       if(@fields[i].isGhost)
@@ -302,18 +322,34 @@ class ClientGame
         if(@p1_remaining_playstones <= 0)
           if(sendDataToServer("moved;" + @selected_stone.to_s + ";" + i.to_s))
             moveStone(i,"white")
-            endTurn
+            if(!@mill)
+              endTurn
+            else
+              @console.print("Remove a stone",0xff_ffffff)
+            end
           end
         else
           if(sendDataToServer("place;" + i.to_s))
             @fields[i].setStone("white")
             @console.print("You placed your stone.",0xff_ffffff)
             @p1_remaining_playstones -= 1
-            endTurn
+            if(!@mill)
+              endTurn
+            else  
+              @console.print("Remove a stone",0xff_ffffff) 
+            end
           end
         end
       else
         selectField(i)
+      end
+    else
+      if(@mill)
+        if(sendDataToServer("remove;" + i.to_s))
+          @fields[i].clear
+          @p1_taken_stones += 1
+          endTurn
+        end
       end
     end
   end
@@ -324,31 +360,31 @@ class ClientGame
   end
   
   def sendDataToServer string
-    
     @connection.puts(string)
     msg = @connection.gets.chop.force_encoding(Encoding::UTF_8)
-    case msg
-      when "invalid"
-        then
-        @console.print("Invalid turn",0xff_ff0000)
-        return true
-      when "ok"
-        then
-        return true
-      when "mill"
-        then
-        @remove_a_stone = true 
-        #TODO mill
-        @console.print("You have a mill!",0xff_12ff00)
-        return true
-      when "won"
-        #TODO
-        then
-      else
-        @console.print("[ERROR] failed interpreting server data",0xff_ff0000)
-        return false
-    end
-    
+#    case msg
+#      when "invalid"
+#        then
+#        @console.print("Invalid turn",0xff_ff0000)
+#        return false
+#      when "ok"
+#        then
+#       return true
+#      when "mill"
+#        then
+#        removeGhostStones
+#        @remove_a_stone = true 
+#        @console.print("You have a mill!",0xff_12ff00)
+#        @mill = true
+#        return true
+#      when "won"
+#        #TODO
+#        then
+#      else
+#        @console.print("[ERROR] failed interpreting server data: #{msg}",0xff_ff0000)
+#        return false
+#    end
+    return true
   end
   
   def endTurn

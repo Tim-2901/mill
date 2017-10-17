@@ -1,6 +1,6 @@
 require "sqlite3"
 require "socket"
-$LOAD_PATH << 'C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/'
+$LOAD_PATH << 'C:/Users/konop/Documents/mill/'
 require 'bin/server/gameserver'
 # Description:
 # creates a server for 2 player

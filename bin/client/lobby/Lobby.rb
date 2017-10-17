@@ -1,16 +1,15 @@
 require 'socket'
-$LOAD_PATH << 'C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/'
 require 'bin/client/lobby/LoadingCircle'
 require 'bin/client/lobby/PlayerData'
 
 class Lobby
   
   def initialize main, username, ip, port
-    @button_queue = Button.new(500, 400, ["C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_unpressed.png", "C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_hover.png"], "Find Match", main)
-    @button_toplist = Button.new(500, 300, ["C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_unpressed.png", "C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_hover.png"], "Leaderboard", main)
-    @button_leave = Button.new(500, 500, ["C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_unpressed.png", "C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_hover.png"], "Leave Server", main)
-    @button_leave_queue = Button.new(500, 400, ["C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_unpressed.png", "C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_hover.png"], "Leave Queue", main)
-    @button_leave_toplist = Button.new(500, 600, ["C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_unpressed.png", "C:/Users/Judith/Dropbox/2 NumProg/Informatik_I/Übersicht/Prüfung/Tim und Tom/mill-master/assets/game/button_hover.png"], "Back to Lobby", main)
+    @button_queue = Button.new(500, 400, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Find Match", main)
+    @button_toplist = Button.new(500, 300, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Leaderboard", main)
+    @button_leave = Button.new(500, 500, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Leave Server", main)
+    @button_leave_queue = Button.new(500, 400, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Leave Queue", main)
+    @button_leave_toplist = Button.new(500, 600, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Back to Lobby", main)
     @loading_circle = LoadingCircle.new(600, 350, 6)
     @username = username
     @main = main
@@ -55,11 +54,9 @@ class Lobby
         
       when 3 #game
         then
-        puts "mapdraw"
 
         @game.draw
 
-        puts "mapdrawed"
 
     end
   end
@@ -70,13 +67,9 @@ class Lobby
         if(@button_queue.update)
           @screen = 1
           @thread = Thread.new{
-            puts "new thread"
           @connection = TCPSocket.new(@ip, @port)
-            puts ("CNTClient: " + @connection.to_s)
           @connection.puts("queueUp;" + @username)
-            puts "send"
           @msg = @connection.gets.chop.force_encoding(Encoding::UTF_8)
-            puts ("MSGClient: " + @msg.to_s)
             @screen = 3
           }
         end
@@ -118,20 +111,15 @@ class Lobby
         end
       when 3 #game
         then
-        puts "game"
         if (@game == nil)
-          puts "new game"
           @game = ClientGame.new(@username, @msg, @main,@connection)
 
         end
-puts "updategaeme"
 
           if(@game.update)
-            puts "quit"
             @screen = 0
             @game = nil
           end
-        puts "frozen?"
         end
 
 
