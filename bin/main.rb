@@ -26,7 +26,8 @@ class Window < Gosu::Window
     @inlobby = false
     @lobby
     @active_textfield = nil
-
+    @offlinegame = nil
+    
     @button_list = [
         Button.new(950, 50, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Join a Server", self),
         Button.new(950, 150, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Create a Server", self),
@@ -126,8 +127,12 @@ class Window < Gosu::Window
         when 4 then
           @rules.draw(PADDING, PADDING, 0, 1, 1, Gosu::Color.argb(0xff_000000))
         when 5 then
-          @offlinegame.draw
-          
+          if(@offlinegame != nil)
+            if(@offlinegame.draw == true)
+              @offlinegame = nil
+              @active_tab = 0
+            end
+          end
       end
     else
       @lobby.draw()

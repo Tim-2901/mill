@@ -19,12 +19,13 @@ class OfflineGame
                    Field.new(1436, 798), Field.new(1216, 798), Field.new(992, 798),#18 - 20 
                    Field.new(1434, 1435), Field.new(1216, 1214), Field.new(992, 990)] #21 - 23
    
-       @button_action = Button.new(950, 645, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Draw", main)
+       @button_action = Button.new(950, 645, ["assets/game/button_unpressed.png", "assets/game/button_hover.png"], "Exit", main)
        
        @player1 = "white"; #client player
        @player2 = "black"; #enemy player
        
        @turn = "black"
+       @game_over = false
        
        @remove_a_stone = false
        @mill = false
@@ -51,7 +52,17 @@ class OfflineGame
   end
   
   def draw
-    update
+    
+    ### checks if someone wins
+    if(@p1_taken_stones == 7)
+       @game_over = true
+       @console.print("Player \"White\" wins the game!", 0xff_12ff00)
+    else if(@p2_taken_stones == 7)
+      @game_over = true
+      @console.print("Player \"Black\" wins the game!", 0xff_12ff00)
+    end end
+    
+    if(update == true) then return true end
        #width:1200 * height:700 padding:20
        @img_background.draw(0,2,0)
        @console.draw
@@ -87,14 +98,49 @@ class OfflineGame
   end
   
   def update
-    if(@clicked)
-      for i in 0.. @fields.length - 1
-        if(@fields[i].update())
-          clickField(i)
+    if(!@game_over)
+      if(@clicked)
+        for i in 0.. @fields.length - 1
+          if(@fields[i].update())
+            clickField(i)
+          end
         end
+        @clicked = false
       end
-      @clicked = false
     end
+    if(@button_action.update)
+      return true
+    end
+    
+    if(@isStuck != nil)
+      @console.print("#{@isStuck} is stuck, he loses the game",0xff_ff0000)
+      return true
+    end
+
+  end
+  
+  # Description:
+  # checks if the enemy player is stuck after the opposite players turn
+  #
+  # Parameter(s):
+  #
+  #
+  # Return:
+  # true if enemy player is stuck else false
+  def isStuck
+    occupied = []
+    for i in 0..@fields.length - 1
+      if (@fields[i].getNormalColor == @turn)then occupied << i end
+    end
+    positions = []
+    positions << occupied.each{|x| getConnected(x)}
+    positions.uniq
+    if(positions == [])then return false end
+    positions.each{|x| 
+      if(@fields[x].isTaken) then 
+        return false 
+    end}
+    return true
   end
   
   # Description:
@@ -145,11 +191,7 @@ class OfflineGame
   end
   
   def selectField i
-    if(@selected_stone > -1)
-      @fields[@selected_stone].setSelected(false)
-    end
     removeGhostStones
-    @fields[i].setSelected(true)
     ghost_fields = getConnected(i)
     @selected_stone = i
     
@@ -264,7 +306,10 @@ class OfflineGame
     end  
   end
   
-  def changeTurn  
+  def changeTurn
+    if(isStuck)
+      @isStuck = @turn
+    end 
     @selected_stone = -1
     removeGhostStones
     if(@turn == "white")
@@ -282,6 +327,9 @@ class OfflineGame
   end
   
   def click
+    if(@button_action.isHover)
+      @button_action.setClicked(true)
+    end
     @clicked = true
   end
   

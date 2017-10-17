@@ -44,7 +44,6 @@ class Field
       else if(@color == "black")
         @img_playstone_black.draw(@x, @y, 0, 0.375, 0.375, @alpha);
       end end
-        
       if(@selected)
         @img_playstone_selection.draw(@x, @y, 0, 0.375, 0.375)
       end

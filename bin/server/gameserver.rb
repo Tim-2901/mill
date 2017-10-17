@@ -293,7 +293,6 @@ class GameServer
     positions.uniq
     positions.each{|x| if(isOccupied!(x))then return false end}
     return true
-
   end
 
   # Description:
