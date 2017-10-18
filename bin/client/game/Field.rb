@@ -64,6 +64,7 @@ class Field
   def update
     if(@hover)
       @alpha = @normal_value
+      @hover = false
       return true
     end
     return false
