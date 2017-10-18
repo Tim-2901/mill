@@ -284,9 +284,15 @@ class OfflineGame
           end
         end 
         if(checkIfMill(i, @turn))
-          @console.print("You have a mill, remove a stone!", 0xff_12ff00)
-          removeGhostStones
-          @mill = true
+          
+          if (checkIfOnlyMills())
+            @console.print("You have a mill, remove a stone!", 0xff_12ff00)
+            removeGhostStones
+            @mill = true
+          else
+            @console.print("You have a mill, but u can't remove a Stone!", 0xff_12ff00)
+            changeTurn
+          end
         else
           changeTurn
         end
@@ -308,6 +314,19 @@ class OfflineGame
         x.clear
       end
     end  
+  end
+  
+  def checkIfOnlyMills
+    turn = if @turn == "white" then "black" else "white" end
+    fields = []
+    for i in 0..@fields.length - 1
+      if @fields[i].getNormalColor == turn then fields << i end
+    end
+    puts fields.to_s
+    for i in fields
+      if !(checkIfMill(i,turn)) then return true end
+    end
+    return false
   end
   
   def changeTurn
