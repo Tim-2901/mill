@@ -494,7 +494,9 @@ class Server
     db_kda = db_kda[0..9] + playerkda
 
     @console.textlist("leaderboard array returned")
+    puts db_kda.to_s
     return db_kda.to_s
+
   end
 
   def mainloop

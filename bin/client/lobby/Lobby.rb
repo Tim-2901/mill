@@ -79,14 +79,17 @@ class Lobby
          msg = connection.gets.chop.force_encoding(Encoding::UTF_8)
           remove_brackets = msg[2..-3]
           player = remove_brackets.split('], [')
+         puts player.to_s
           for i in 0..player.length - 1
             rawplayerdata = player[i].gsub('\"', "")
             playerdata = rawplayerdata.split(',')
             if(playerdata.length < 6)
+              puts rawplayerdata.to_s
               @topplayer[i] = PlayerData.new((i + 1).to_s + ". " + playerdata[0],playerdata[1],playerdata[2],playerdata[3][0..7],playerdata[4][0..7])
             else
               @screen = 2
-              @you = PlayerData.new(playerdata[5] + ". " + playerdata[0],playerdata[1],playerdata[2],playerdata[3][0..7],playerdata[4][0..7]  + " (you)")
+              puts (rawplayerdata.to_s + "last")
+              @you = PlayerData.new((playerdata[5].to_i + 1).to_s + ". " + playerdata[0],playerdata[1],playerdata[2],playerdata[3][0..7],playerdata[4][0..7]  + " (you)")
             end
           end
        end

@@ -102,7 +102,6 @@ class Window < Gosu::Window
      "
     rules.gsub! /^ +/,''
     @rules = Gosu::Image.from_text rules,20,:width => WIDTH * PADDING
-
   end
 
   def draw
@@ -208,13 +207,10 @@ class Window < Gosu::Window
           if(@active_textfield != nil && !@active_textfield.MouseToRect())
             @active_textfield.unselect()
             @active_textfield = nil
-            puts "unselect"
           end
 
           if(textfield.MouseToRect())
             @active_textfield = textfield.selected()
-            puts "pressed"
-            puts @active_textfield
           end
         end
 
