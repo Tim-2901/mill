@@ -1,4 +1,3 @@
-require "socket"
 class Connection
 
   def initialize(ip, port)

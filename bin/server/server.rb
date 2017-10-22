@@ -1,7 +1,3 @@
-require "sqlite3"
-require "socket"
-$LOAD_PATH << 'C:/Users/konop/Documents/mill/'
-require 'bin/server/gameserver'
 # Description:
 # creates a server for 2 player
 #

@@ -1,8 +1,3 @@
-require 'bin/client/game/Console'
-require 'bin/client/game/Field'
-require 'bin/server/Server'
-
-
 class ClientGame
   
   def initialize p1, p2, main, connection

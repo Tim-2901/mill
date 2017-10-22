@@ -1,5 +1,3 @@
-require 'bin/client/game/Message'
-
 class ConsoleIngame
   
   def initialize xpos, ypos, width, height

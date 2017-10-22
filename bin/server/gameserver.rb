@@ -1,6 +1,3 @@
-require "sqlite3"
-require "socket"
-
 # Description:
 # creates a server for 2 player
 #

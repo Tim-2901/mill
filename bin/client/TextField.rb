@@ -1,4 +1,4 @@
-require 'gosu'
+
 # File: TextField.rb
 # Author: Tim Konopka & Tom Hauschild
 #

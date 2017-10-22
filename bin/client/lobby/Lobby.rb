@@ -1,7 +1,3 @@
-require 'socket'
-require 'bin/client/lobby/LoadingCircle'
-require 'bin/client/lobby/PlayerData'
-
 class Lobby
   
   def initialize main, username, ip, port
